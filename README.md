@@ -1,23 +1,26 @@
 # submarine-game
 exciting simplisitc turned based submarine combat game (work in progress)
 
-<P ALIGN=LEFT>turned based submarine combat game of exrteme action and excitment. an adreneline rush of epic proportions</P>
+<P ALIGN=LEFT>turned based submarine combat game of exrteme action and excitment. an adreneline rush of epic proportions
 
 <P ALIGN=LEFT>objective:
- <P ALIGN=CENTER> destroy enemy submarine and destoyer and dont die in the process.</P>
+ <P ALIGN=CENTER> destroy enemy submarine and destoyer and dont die in the process
 
-<P ALIGN=LEFT>game pieces:</P>
- <P ALIGN=CENTER>player: </P>
-   <P ALIGN=RIGHT> player controls a submarine. cable of moving in al directions, including up and down. 
-    weapons include standard torpedo and 2 area of effect torpedos witha 5 block blast radius
-    player submarine also includes sonar. initialy places randomly in uper left hand quadrant</P>
-<P ALIGN=CENTER>enemy sub:</P>
-  <P ALIGN=RIGHT>same movment, armament, and sonar as the player sub initally placed randomly in bottom right hand quadrant</P>
- <P ALIGN=CENTER>enemy destroyer:</P>
- <P ALIGN=RIGHT>enemy surfce ship. cpable of moving onthe surface only weapons inlude depth charges with a 5 block blast radius capable of reaching any depth and a cannon for firing at surface <P targets
+<P ALIGN=LEFT>game pieces:
+ <P ALIGN=CENTER>player:
+ <P ALIGN=CENTER>player controls a submarine. cable of moving in al directions, including up and down. 
+ <P ALIGN=CENTER>weapons include standard torpedo and 2 area of effect torpedos witha 5 block blast radius
+  <P ALIGN=CENTER>player submarine also includes sonar. initialy places randomly in uper left hand quadrant
+
+<P ALIGN=CENTER>enemy sub:
+  <P ALIGN=CENTER>same movment, armament, and sonar as the player sub initally placed randomly in bottom right hand quadrant
+  
+<P ALIGN=CENTER>enemy destroyer:
+ <P ALIGN=CENTER>enemy surfce ship. cpable of moving on the surface only <BR>
+  <P ALIGN=CENTER>weapons inlude depth charges with a 5 block blast radius capable of reaching any depth and a cannon for firing at surface targets
     destroyer also has its own sonar.
-    inital placement is randomly on surface in any quadrant</P>
-  <P ALIGN=CENTER>cargo ship:</P>
- <P ALIGN=RIGHT>has no weapons nor sonar. 
+  <P ALIGN=CENTER>inital placement is randomly on surface in any quadrant
+  <P ALIGN=CENTER>cargo ship:
+  <P ALIGN=CENTER>has no weapons nor sonar. 
       sinking cargo ship grants large bonus to points. but be warned, sinking it attractes attention of enemy.
-      initial placement is randomly in right hand side of window.</P>
+      initial placement is randomly in right hand side of window.
