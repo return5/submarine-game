@@ -29,3 +29,11 @@
      - ### warning
      - sinking cargo ship alerts enemies and will have them in hot pursuit of you
    
+##to do
+  - [ ] add ability to move player sub
+  - [ ] add ability to fire torpedos and sink enemy ships
+  - [ ] add sonar to detect enemy ships
+  - [ ] add ability to be damaged by depth charges and AOE torpedoes
+  - [ ] add turns for each player
+  - [ ] add decision tree for enemy computer
+  - [ ] fix up game display
