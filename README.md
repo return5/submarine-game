@@ -8,9 +8,10 @@ exciting simplisitc turned based submarine combat game (work in progress)
 
 <P ALIGN=LEFT>game pieces:
  <P ALIGN=CENTER>player:
- <P ALIGN=CENTER>player controls a submarine. cable of moving in al directions, including up and down. 
+ <P ALIGN=CENTER>player controls a submarine. cable of moving in all directions, including up and down. 
  <P ALIGN=CENTER>weapons include standard torpedo and 2 area of effect torpedos witha 5 block blast radius
-  <P ALIGN=CENTER>player submarine also includes sonar. initialy places randomly in uper left hand quadrant<BR><BR>
+ <P ALIGN=CENTER>player submarine also includes sonar. 
+ <P ALIGN=CENTER>initialy places randomly in uper left hand quadrant<BR><BR>
 
 <P ALIGN=CENTER>enemy sub:
   <P ALIGN=CENTER>same movment, armament, and sonar as the player sub  
