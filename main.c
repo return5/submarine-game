@@ -1,3 +1,9 @@
+// Submarine game
+//author: github/return5
+//license: GPL 2.0
+//currently a work in progress.
+//turned based game. player controls a submarine and is in a fight against an enemy submarine and an enemy destroyer.  also includes a cargo ship which can be destroyed for extra points
+
 //---------------------------------------- headers ------------------------------------------------
 #include <stdlib.h>
 #include <string.h>
