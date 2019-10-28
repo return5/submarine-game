@@ -4,37 +4,51 @@
 //currently a work in progress.
 //turned based game. player controls a submarine and is in a fight against an enemy submarine and an enemy destroyer.  also includes a cargo ship which can be destroyed for extra points
 
+
 //---------------------------------------- headers ------------------------------------------------
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ncurses.h>
 #include <time.h>
 #include "units.h"
+#include <unistd.h>
 //---------------------------------------- prototypes ----------------------------------------------
 int initScreen(void);
 void gameLoop(void);
 void exitGame(void);
 void createPieces(void);
 void createWindows(void);
-void makeShip(SHIP *ship,const int x_start, const int y_start, const int x_end, const int y_end,enum TYPE type);
-void makeSub(SHIP *ship);
-void makeBoat(SHIP *ship);
+void makeShip(SHIP *const ship,const int x_start, const int y_start, const int x_end, const int y_end,enum TYPE type);
+void makeSub(SHIP *const ship);
+void makeBoat(SHIP *const ship);
 int getRandom(const int start, const int end);
 void checkPiecesLocation(void);
+void movePlayer(void);
+void printPieces(void);
+int moveShip(SHIP *const ship,const int new_x, const int new_y, const int new_z);
+void printToTxtScr(const int x, const int y, const char *const str);
+void updateLocationDisplay(void);
+void updateAOETorDisplay(void);
+void updateLastDetected(void);
+void updateAPDisplay(void);
+void updateDirection(SHIP *const ship, const int new_x, const int new_y);
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 #define Y_EDGE 25
 #define X_EDGE 75
 #define SUB_SHIP ship->ship->sub
 #define SUR_SHIP ship->ship->surface
-#define PLAYER player_sub->SUB_SHIP
+#define PLAYER player_sub->ship->sub
 #define ENEMY_SUB enemy_sub->SUB_SHIP
 #define ENEMY_SUR enemy_boat->SUR_SHIP
+enum DIRECTION {UP,DOWN,FORWARD,BACK,LEFT,RIGHT};
 
 //----------------------------------------  global vars -------------------------------------------
-	static WINDOW *main_wnd,*opt_wnd,*status_wnd;
-	static SHIP *player_sub,*enemy_sub,*enemy_boat,*cargo_ship;
+	static WINDOW *main_win,*opt_win,*status_win,*text_win;
+	SHIP *player_sub,*enemy_sub,*enemy_boat,*cargo_ship;
 	static int play = 1;
+	static int has_detected = 0; //when player is first detected it flips to one
 
 
 //---------------------------------------- code ---------------------------------------------------
@@ -44,7 +58,130 @@ int getRandom(const int start, const int end) {
 	return (rand() % (end - start)) + start;
 }
 
-void makeBoat(SHIP *ship) {
+//update the direction in which the ship is facing
+void updateDirection(SHIP *const const ship, const int new_x, const int new_y) {
+	if(new_x != ship->x) {
+		if(new_x > ship->x) {
+			ship->direction_facing = RIGHT;
+		}
+		else {
+			ship->direction_facing = LEFT;
+		}
+	}
+	else if(new_y != ship->y) {
+		if(new_y > ship->y) {
+			ship->direction_facing = BACK;
+		}
+		else {
+			ship->direction_facing = FORWARD;
+		}
+	}
+}
+
+//updates the display to show ammount of action points you have left
+void updateAPDisplay(void) {
+	mvwprintw(status_win,4,0,"AP points: %d ",player_sub->ap);
+	wrefresh(status_win);
+}
+
+//update the display to show how many turns since last detected
+void updateLastDetected(void) {
+	if(has_detected) {
+		PLAYER->last_detected++;
+	}
+	mvwprintw(status_win,3,0,"detected: %d ",PLAYER->last_detected);
+	wrefresh(status_win);
+}
+
+//updates the display to show how many AOE torpedoes you have left
+void updateAOETorDisplay(void) {
+	mvwprintw(status_win,2,0,"AOE Tor: %d",PLAYER->num_aoetor);
+	wrefresh(status_win);
+}
+
+//update the display to show current health
+void updateHealthDisplay(void) {
+	mvwprintw(status_win,1,0,"Health: %d  ",player_sub->health);
+	wrefresh(status_win);
+}
+
+//updates display to show current location as x y z
+void updateLocationDisplay(void) {
+	mvwprintw(status_win,0,0,"                   ");  //blank line to clear line 0,0
+	mvwprintw(status_win,0,0,"Locations: %d %d %d",player_sub->x,player_sub->y,player_sub->z);
+	wrefresh(status_win);
+}
+
+//print str to text_win at location x,y
+void printToTxtScr(const int x, const int y, const char *const str) {
+	wclear(text_win);
+	mvwprintw(text_win,y,x,"%s",str);
+	wrefresh(text_win);
+}
+
+//checks if ship is at boundary, and if not, moves ship to new location, else returns -1
+int moveShip(SHIP *const ship, const int new_x, const int new_y, const int new_z) {
+	if( new_z < 0 || new_z > 4) {
+		return -1;
+	}
+	else if(new_x < 0 || new_x >= X_EDGE) {
+		return -1;
+	}
+	else if (new_y < 0 || new_y >= Y_EDGE) {
+		return -1;
+	}
+	else {
+		updateDirection(ship,new_x,new_y);
+		player_sub->x = new_x;
+		player_sub->y = new_y;
+		player_sub->z = new_z;
+		return 0;
+	}
+}
+
+//gets user input to move player_sub one space in any direction.
+int getDirection(int *const direction) {
+	switch(getch()) {
+		case 'q':
+			*direction = UP; 
+			return moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z-1);
+		case 'e':
+			*direction = DOWN; 
+			return moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z+1);
+		case 'w':
+			*direction = FORWARD; 
+			return moveShip(player_sub,player_sub->x,(player_sub->y)-1,player_sub->z);
+		case 'a':
+			*direction = LEFT; 
+			return moveShip(player_sub,player_sub->x-1,player_sub->y,player_sub->z);
+		case 's':
+			*direction = BACK; 
+			return moveShip(player_sub,player_sub->x,player_sub->y+1,player_sub->z);
+		case 'd':
+			*direction = RIGHT; 
+			return moveShip(player_sub,player_sub->x+1,player_sub->y,player_sub->z);
+		case 'f': return 1;  //exit menu when f key is pressed
+			break;
+		default: 
+			printToTxtScr(0,0,"wrong choice, please try again");
+			getch();
+			return -1;
+	}
+}
+
+void movePlayer(void) {
+	int direction;
+	do {
+		printToTxtScr(0,0,"'w''a''s''d' keys moves sub forward, back, left right.\n'q' and 'e' moves sub up and down.\n'f' exits menu");
+	} while(getDirection(&direction) == -1);
+		printPieces();
+		updateLocationDisplay();
+		updateHealthDisplay();
+		updateAOETorDisplay();
+		updateLastDetected();
+}
+
+void makeBoat(SHIP *const ship) {
 	SUR_SHIP = malloc(sizeof(SURFACE));
 	if(ship->type == SURFACESHIP) { //if ship is surface ship and not a cargo ship
 		SUR_SHIP->num_charges = 25;  //number of depth charges left
@@ -54,14 +191,14 @@ void makeBoat(SHIP *ship) {
 	ship->z = 0;  // z=0 which is surface of water
 }
 
-void makeSub(SHIP *ship) {
+void makeSub(SHIP *const ship) {
 	SUB_SHIP = malloc(sizeof(SUB));
 	SUB_SHIP->num_aoetor = 2; //area of effect torpedoes is 2
-	SUB_SHIP->last_detected = 100;  //init to large number
+	SUB_SHIP->last_detected = -1;  //init to neg number
 	ship->z = getRandom(1,5);  //set z to random num between 1 and 4
 }
 
-void makeShip(SHIP *ship,const int x_start, const int y_start, const int x_end, const int y_end,enum TYPE type){
+void makeShip(SHIP *const ship,const int x_start, const int y_start, const int x_end, const int y_end,enum TYPE type){
 	ship->health = 100;
 	ship->last_knownx = 0;
 	ship->last_knowny = 0;
@@ -70,6 +207,7 @@ void makeShip(SHIP *ship,const int x_start, const int y_start, const int x_end, 
 	ship->ship = malloc(sizeof(SHIPS));
 	ship->type = type;
 	ship->turbo = 1;
+	ship->ap = 2;
 	if(type == SUBMARINE) {
 		makeSub(ship);
 	}
@@ -103,31 +241,30 @@ void createPieces(void) {
 
 void createWindows(void) {
 	#define OPTW 15  //opt window width
-	#define STATW 17 //status window width
 	#define OPTH 5 //opt window height
+	#define STATW 19 //status window width
 	#define STATH 5 //status window height
+	#define TEXTH 3 //text window height
+	#define TEXTW X_EDGE //text window width
 
-	WINDOW *game_border,*status_border,*opt_border;
-	main_wnd = newwin(Y_EDGE,X_EDGE,1,1);
-	opt_wnd = newwin(OPTH,OPTW,Y_EDGE-OPTH+1,X_EDGE+3);
-	status_wnd = newwin(STATH,STATW,1,X_EDGE+3);
+	WINDOW *game_border,*status_border,*opt_border,*text_border;
+	main_win = newwin(Y_EDGE,X_EDGE,1,1);
+	opt_win = newwin(OPTH,OPTW,Y_EDGE-OPTH+1,X_EDGE+3);
+	status_win = newwin(STATH,STATW,1,X_EDGE+3);
+	text_win = newwin(TEXTH,TEXTW,Y_EDGE+3,1);
 	game_border = newwin(Y_EDGE+2,X_EDGE+2,0,0);
 	wborder(game_border,'|','|','-', '-', '+', '+', '+', '+');
 	status_border = newwin(STATH+2,STATW+2,0,X_EDGE+2);
 	wborder(status_border,'|','|','-', '-', '+', '+', '+', '+');
 	opt_border = newwin(OPTH+2,OPTW+2,Y_EDGE-OPTH,X_EDGE+2);
 	wborder(opt_border,'|','|','-', '-', '+', '+', '+', '+');
+	text_border = newwin(TEXTH+2,TEXTW+2,Y_EDGE+2,0);
+	wborder(text_border,'|','|','-', '-', '+', '+', '+', '+');
 	wrefresh(game_border);
 	wrefresh(status_border);
 	wrefresh(opt_border);
-	wrefresh(main_wnd);
-	for(int i = 0 ; i < OPTH; i++) {
-		mvwprintw(opt_wnd,i,0,"%d",i);
-	}
-	wrefresh(opt_wnd);
-	mvwprintw(status_wnd,0,0,"health is: 100");
-	wrefresh(status_wnd);
-
+	wrefresh(text_border);
+	wrefresh(main_win);
 }
 
 //initialize ncurses
@@ -135,10 +272,10 @@ int initScreen(void) {
 	//(!has_colors()) {  //if terminal can not display color return -1
 //		return -1;
 //	}
-	start_color();
+//start_color();
 	initscr();        //start ncurses
 	noecho();	      //dont display key strokes
-	//cbreak();	     //disable line buffering
+	cbreak();	     //disable line buffering
 	curs_set(0);    //hide cursor
 	keypad(stdscr,TRUE);  //enable keypad, needed for mouse.
 	mousemask(ALL_MOUSE_EVENTS,NULL); //enable all mouse events
@@ -148,9 +285,7 @@ int initScreen(void) {
 
 void gameLoop(void) {
 	while(play == 1) {
-		if(getch() == 'q') {
-			play = 0;
-		}
+		movePlayer();
 	}
 }
 
@@ -160,13 +295,12 @@ void exitGame(void) {
 }
 
 void printPieces(void) {
-	mvwprintw(main_wnd,player_sub->y,player_sub->x,"X");
-	mvwprintw(status_wnd,1,0,"location: %d %d %d",player_sub->x,player_sub->y,player_sub->z);
-	mvwprintw(main_wnd,enemy_sub->y,enemy_sub->x,"Y");
-	mvwprintw(main_wnd,enemy_boat->y,enemy_boat->x,"Z");
-	mvwprintw(main_wnd,cargo_ship->y,cargo_ship->x,"C");
-	wrefresh(main_wnd);
-	wrefresh(status_wnd);
+	wclear(main_win);
+	mvwprintw(main_win,player_sub->y,player_sub->x,"X");
+	mvwprintw(main_win,enemy_sub->y,enemy_sub->x,"Y");
+	mvwprintw(main_win,enemy_boat->y,enemy_boat->x,"Z");
+	mvwprintw(main_win,cargo_ship->y,cargo_ship->x,"C");
+	wrefresh(main_win);
 
 }
 
@@ -177,6 +311,11 @@ int main(void) {
 		createPieces();
 		checkPiecesLocation();
 		printPieces();
+		updateLocationDisplay();
+		updateHealthDisplay();
+		updateAOETorDisplay();
+		updateLastDetected();
+		updateAPDisplay();
 		gameLoop();
 		exitGame();
 	}
