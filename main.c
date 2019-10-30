@@ -1,8 +1,8 @@
 // Submarine game
 //author: github/return5
 //license: GPL 2.0
+//version: 0.3
 //currently a work in progress.
-//version 0.2
 //turned based game. player controls a submarine and is in a fight against an enemy submarine and an enemy destroyer.  also includes a cargo ship which can be destroyed for extra points
 
 
@@ -56,26 +56,38 @@ void printPieces(void);
 void printPlayerSub(void);
 int checkZ(const SHIP *const ship);
 void targetDestroyed(SHIP *const target);
+void playerTurn(void);
+void printOptWin(void);
+void checkMouseLocation(const int x, const int y);
+void useTurbo(void);
+void repairShip(void);
+void useSonar(void);
+void displayAOE(int const x, int const y);
+void useAOE(void);
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 #define Y_EDGE 25
 #define X_EDGE 75
 #define X_NORM 2  //value to make spacing of x coordinate look liek spacing of y coordinate
-#define SUB_SHIP ship->ship->sub
-#define SUR_SHIP ship->ship->surface
+#define SHIP_1 enemies->ship
+#define SHIP_2 enemies->next->ship
+#define SHIP_3 enemies->next->next->ship
 #define PLAYER player_sub->ship->sub
-#define ENEMY_SUB enemy_sub->SUB_SHIP
-#define ENEMY_SUR enemy_boat->SUR_SHIP
 #define TORPEDODISTANCE 10 //distance a torpedo can fire.
 
 enum DIRECTION {UP,DOWN,FORWARD,BACK,LEFT,RIGHT};
 
+typedef struct ENEMIES { //used to make linked list to hold enemy ships
+	SHIP *ship;
+	struct ENEMIES *next;
+}ENEMIES;
+
 //----------------------------------------  global vars -------------------------------------------
 static WINDOW *main_win,*opt_win,*status_win,*text_win;
-SHIP *player_sub,*enemy_sub,*enemy_boat,*cargo_ship;
+static SHIP *player_sub; //player controlled submarine
+static ENEMIES *enemies; //holds enemy ships
 static int play = 1;
 static int has_detected = 0; //when player is first detected it flips to one
-
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -85,18 +97,15 @@ int getRandom(const int start, const int end) {
 }
 
 void targetDestroyed(SHIP *const target) {
-	if(target == enemy_sub) {
-		printToTxtScr(0,0,"congragulations, you destroyed enemy sub.");
-		getch();
-	}	
-	else if(target == enemy_boat) {
-		printToTxtScr(0,0,"congragulations, you destroyed enemy surfaceship.");
-		getch();
+	switch(target->type) {
+		case SUBMARINE: printToTxtScr(0,0,"congragulations, you destroyed enemy sub.");
+			break;
+		case SURFACESHIP: printToTxtScr(0,0,"congragulations, you destroyed enemy surfaceship.");
+			break;
+		default: printToTxtScr(0,0,"congragulations, you destroyed enemy cargo ship.");
+			break;
 	}
-	else {
-		printToTxtScr(0,0,"congragulations, you destroyed enemy cargo ship.");
-		getch();
-	}
+	getch();
 	target->health = 0;
 	target->ap = 0;
 }
@@ -167,20 +176,12 @@ int checkZ(const SHIP *const ship) {
 void fireTorpedoRight(const int limit) {
 	SHIP *targets[3];
 	int index = 0;
-	if(enemy_sub->y == player_sub->y && checkZ(enemy_sub)) { //if enemy sub is right player sub
-		if(enemy_sub->x > player_sub->x) {
-			targets[index++] = enemy_sub;
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		if(head->ship->y == player_sub->y && checkZ(head->ship) && head->ship->x > player_sub->x) { //if enemy is to right of player sub
+			targets[index++] = head->ship;
 		}
-	}
-	if(enemy_boat->y == player_sub->y && checkZ(enemy_boat)) { //if enemy boat is right player sub
-		if(enemy_boat->x > player_sub->x) {
-			targets[index++] = enemy_boat;
-		}
-	}
-	if(cargo_ship->y == player_sub->y && checkZ(cargo_ship)) { //if cargo ship is right player sub
-		if(cargo_ship->x > player_sub->x) {
-			targets[index++] = cargo_ship;
-		}
+		head = head->next;
 	}
 	if(index > 0) {
 		getSingleTargetX(targets,index,1,limit);
@@ -195,20 +196,12 @@ void fireTorpedoRight(const int limit) {
 void fireTorpedoLeft(const int limit) {
 	SHIP *targets[3];
 	int index = 0;
-	if(enemy_sub->y == player_sub->y && checkZ(enemy_sub)) { //if enemy sub is left player sub
-		if(enemy_sub->x < player_sub->x){
-			targets[index++] = enemy_sub;
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		if(head->ship->y == player_sub->y && checkZ(head->ship) && head->ship->x < player_sub->x) { //if enemy sub is to left of player sub
+			targets[index++] = head->ship;
 		}
-	}
-	if(enemy_boat->y == player_sub->y && checkZ(enemy_boat)) { //if enemy boat is left player sub
-		if(enemy_boat->x < player_sub->x){
-			targets[index++] = enemy_boat;
-		}
-	}
-	if(cargo_ship->y == player_sub->y && checkZ(cargo_ship)) { //if cargo ship is left player sub
-		if(cargo_ship->x < player_sub->x){
-			targets[index++] = cargo_ship;
-		}
+		head = head->next;
 	}
 	if(index > 0) {
 		getSingleTargetX(targets,index,-1,limit);
@@ -224,20 +217,12 @@ void fireTorpedoLeft(const int limit) {
 void fireTorpedoBack(const int limit) {
 	SHIP *targets[3];
 	int index = 0;
-	if(enemy_sub->x == player_sub->x && checkZ(enemy_sub)) { //if enemy sub is behind player sub
-		if(enemy_sub->y > player_sub->y){
-			targets[index++] = enemy_sub;
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		if(head->ship->x == player_sub->x && checkZ(head->ship) && head->ship->y > player_sub->y) { //if enemy is below player sub
+			targets[index++] = head->ship;
 		}
-	}
-	if(enemy_boat->x == player_sub->x && checkZ(enemy_boat)) { //if enemy boat is behind player sub
-		if(enemy_boat->y > player_sub->y){
-			targets[index++] = enemy_boat;
-		}
-	}
-	if(cargo_ship->x == player_sub->x && checkZ(cargo_ship)) { //if cargo ship is behind player sub
-		if(cargo_ship->y > player_sub->y) {
-			targets[index++] = cargo_ship;
-		}
+		head = head->next;
 	}
 	if(index > 0) {
 		getSingleTargetY(targets,index,1,limit);
@@ -253,20 +238,12 @@ void fireTorpedoBack(const int limit) {
 void fireTorpedoForward(const int limit) {
 	SHIP *targets[3];
 	int index = 0;
-	if(enemy_sub->x == player_sub->x && checkZ(enemy_sub)) { //if enemy sub is above player sub
-		if(enemy_sub->y < player_sub->y){
-			targets[index++] = enemy_sub;
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		if(head->ship->x == player_sub->x && checkZ(head->ship) && head->ship->y < player_sub->y) { //if enemy is above player sub
+			targets[index++] = head->ship;
 		}
-	}
-	if(enemy_boat->x == player_sub->x && checkZ(enemy_boat)) { //if enemy boat is above player sub
-		if(enemy_boat->y < player_sub->y){
-			targets[index++] = enemy_boat;
-		}
-	}
-	if(cargo_ship->x == player_sub->x && checkZ(cargo_ship)) { //if cargo ship is above
-		if(cargo_ship->y < player_sub->y){
-			targets[index++] = cargo_ship;
-		}
+		head = head->next;
 	}
 	if(index > 0) {
 		getSingleTargetY(targets,index,-1,limit);
@@ -329,12 +306,23 @@ void confirmFireTorpedo(const int limit) {
 	printPieces();
 }
 
+void displayAOE(int const x, int const y) {
+	int offset = 2;
+	for(int i = 0; i < 3; i++) {
+		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
+			printToMain(x+j,y-i,"#");
+			printToMain(x-j,y-i,"#");
+			printToMain(x+j,y+i,"#");
+			printToMain(x-j,y+i,"#");
+		}
+		offset--;
+	}
+}
+
 int torpedoFireLineRight(void) {
 	const int limit = (player_sub->x < X_EDGE - TORPEDODISTANCE * X_NORM - 1) ? TORPEDODISTANCE * X_NORM : X_EDGE - player_sub->x - 1;
-	for(int i = 1; i < limit; i++) {
-		if(i % 2) {
+	for(int i = X_NORM; i < limit; i+= X_NORM) {
 			printToMain(player_sub->x+i,player_sub->y,"-");
-		}
 	}
 	printToMain(player_sub->x+limit,player_sub->y,">");
 	return limit;
@@ -342,10 +330,8 @@ int torpedoFireLineRight(void) {
 
 int torpedoFireLineLeft(void) {
 	const int limit = (player_sub->x > TORPEDODISTANCE * X_NORM) ? TORPEDODISTANCE * X_NORM : player_sub->x;
-	for(int i = 1; i < limit; i++) {
-		if(i % 2) {
+	for(int i = X_NORM; i < limit; i+= X_NORM) {
 			printToMain(player_sub->x-i,player_sub->y,"-");
-		}
 	}
 	printToMain(player_sub->x-limit,player_sub->y,"<");
 	return limit;
@@ -373,13 +359,29 @@ void setTorpedoFireLine(void) {
 	int limit;
 	wattron(main_win,COLOR_PAIR(1));  //turn color red on
 	switch(player_sub->direction_facing) {
-		case FORWARD: limit = torpedoFireLineUp();
+		case FORWARD: 
+			limit = torpedoFireLineUp();
+			if(PLAYER->using_aoe) {
+				displayAOE(player_sub->x,player_sub->y - limit);
+			}
 			break;
-		case BACK: limit = torpedoFireLineDown();
+		case BACK: 
+			limit = torpedoFireLineDown();
+			if(PLAYER->using_aoe) {
+				displayAOE(player_sub->x,player_sub->y + limit);
+			}
 			break;
-		case LEFT: limit = torpedoFireLineLeft();
+		case LEFT: 
+			limit = torpedoFireLineLeft();
+			if(PLAYER->using_aoe) {
+				displayAOE(player_sub->x - limit, player_sub->y);
+			}
 			break;
-		case RIGHT: limit = torpedoFireLineRight();
+		case RIGHT: 
+			limit = torpedoFireLineRight();
+			if(PLAYER->using_aoe) {
+				displayAOE(player_sub->x + limit, player_sub->y);
+			}
 			break;
 	}
 	wattroff(main_win,COLOR_PAIR(1)); //turn color red off
@@ -440,6 +442,11 @@ void updateLocationDisplay(void) {
 	wrefresh(status_win);
 }
 
+void printToOptWin(const int x, const int y, const char *const str) {
+	mvwprintw(opt_win,y,x,"%s",str);
+	wrefresh(opt_win);
+}
+
 //print str to main window at x,y
 void printToMain(const int x, const int y, const char *const str) {
 	mvwprintw(main_win,y,x,"%s",str);
@@ -473,8 +480,63 @@ int moveShip(SHIP *const ship, const int new_x, const int new_y, const int new_z
 	}
 }
 
+void useTurbo(void) {
+	if(player_sub->turbo == 1) {
+		player_sub->ap += 2;
+		player_sub->turbo = 0;
+		wattron(opt_win,COLOR_PAIR(1));
+		printToOptWin(2,0,"x");
+		wattroff(opt_win,COLOR_PAIR(1));
+		updateAPDisplay();
+	}
+	else {
+		printToTxtScr(0,0,"sorry, but you have already used turbo.");
+		getch();
+	}	
+}
+
+void useAOE(void) {
+	if(PLAYER->num_aoetor) {
+		PLAYER->using_aoe = 1;
+		wattron(opt_win,COLOR_PAIR(1));
+		printToOptWin(2,1,"x");
+		wattroff(opt_win,COLOR_PAIR(1));
+	}
+	else {
+		printToTxtScr(0,0,"sorry, but you are out of AOE torpedoes.");
+		getch();
+	}
+}
+
+void useSonar(void) {
+
+}
+
+void repairShip(void) {
+
+}
+
+//checks where mouse was when it was clicked. if clicked on opt boxes, then do those things 
+void checkMouseLocation(const int x, const int y) {
+	if(x == 80) {
+		switch(y) {
+		case 22: useTurbo();
+			break;
+		case 23: useAOE();
+			break;
+		case 24: useSonar();
+			break;
+		case 25: repairShip();
+			break;
+		default: //do nothing
+			break;		
+		}
+	}
+}
+
 //gets user input to move player_sub one space in any direction.
 int getDirection(int *const direction) {
+	MEVENT event;
 	switch(getch()) {
 		case 'q':
 			*direction = UP; 
@@ -500,6 +562,13 @@ int getDirection(int *const direction) {
 			setTorpedoFireLine();
 			return -1;
 			break;
+		case KEY_MOUSE:
+			if(getmouse(&event) == OK) { 
+				if(event.bstate & BUTTON1_CLICKED){ //if left mouse button was clicked
+					checkMouseLocation(event.x,event.y);
+				}
+			}
+			break;
 		default: 
 			printToTxtScr(0,0,"wrong choice, please try again");
 			getch();
@@ -519,12 +588,25 @@ void movePlayer(void) {
 	updateLastDetected();
 }
 
+void playerTurn(void) {
+	movePlayer();
+}
+
+void printOptWin(void) {
+	mvwprintw(opt_win,0,1,"[ ]  turbo");
+	mvwprintw(opt_win,1,1,"[ ]  AOE tor");
+	mvwprintw(opt_win,2,1,"[ ]  sonar");
+	mvwprintw(opt_win,3,1,"[ ]  repair");
+	wrefresh(opt_win);
+}
+
 void printPlayerSub(void) {
 	mvwprintw(main_win,player_sub->y,player_sub->x,"x");
 	wrefresh(main_win);
 }
 
 void makeBoat(SHIP *const ship) {
+	#define SUR_SHIP ship->ship->surface
 	SUR_SHIP = malloc(sizeof(SURFACE));
 	if(ship->type == SURFACESHIP) { //if ship is surface ship and not a cargo ship
 		SUR_SHIP->num_charges = 25;  //number of depth charges left
@@ -535,6 +617,7 @@ void makeBoat(SHIP *const ship) {
 }
 
 void makeSub(SHIP *const ship) {
+	#define SUB_SHIP ship->ship->sub
 	SUB_SHIP = malloc(sizeof(SUB));
 	SUB_SHIP->num_aoetor = 2; //area of effect torpedoes is 2
 	SUB_SHIP->last_detected = -1;  //init to neg number
@@ -558,29 +641,33 @@ void makeShip(SHIP *const ship,const int x_start, const int y_start, const int x
 
 //checks to makes sure enemy boat and cargo ship arnt at the same location. if they are gets new random location for both
 void checkPiecesLocation(void) {
-	while((cargo_ship->x == enemy_boat->x) && (cargo_ship->y == enemy_boat->y)) {
-		cargo_ship->x = getRandom(X_EDGE/2,X_EDGE-1);
-		cargo_ship->y = getRandom(0,Y_EDGE-1);
-		enemy_boat->x = getRandom(0,X_EDGE-1);
-		enemy_boat->y = getRandom(0,Y_EDGE-1);
+	while((SHIP_3->x == SHIP_2->x) && (SHIP_3->y == SHIP_2->y)) {
+		SHIP_3->x = getRandom(X_EDGE/2,X_EDGE-1);
+		SHIP_3->y = getRandom(0,Y_EDGE-1);
+		SHIP_2->x = getRandom(0,X_EDGE-1);
+		SHIP_2->y = getRandom(0,Y_EDGE-1);
 	}
 }
 
 void createPieces(void) {
 	const int size_ship = sizeof(SHIP);
+	const int size_enemies = sizeof(ENEMIES);
 	player_sub = malloc(size_ship);
 	makeShip(player_sub,0,0,(X_EDGE/2)-5,(Y_EDGE/2)-5,SUBMARINE);
-	enemy_sub = malloc(size_ship);
-	makeShip(enemy_sub,(X_EDGE/2)+5,(Y_EDGE/2)+5,X_EDGE-1,Y_EDGE-1,SUBMARINE);
-	enemy_boat = malloc(size_ship);
-	makeShip(enemy_boat,0,0,X_EDGE-1,Y_EDGE-1,SURFACESHIP);
-	cargo_ship = malloc(size_ship);
-	makeShip(cargo_ship,X_EDGE/2,0,X_EDGE-1,Y_EDGE-1,CARGOSHIP);
+	enemies = malloc(size_enemies);
+	enemies->ship = malloc(size_ship);
+	makeShip(enemies->ship,(X_EDGE/2)+5,(Y_EDGE/2)+5,X_EDGE-1,Y_EDGE-1,SUBMARINE);
+	enemies->next = malloc(size_enemies);
+	enemies->next->ship = malloc(size_ship);
+	makeShip(enemies->next->ship,0,0,X_EDGE-1,Y_EDGE-1,SURFACESHIP);
+	enemies->next->next = malloc(size_enemies);
+	enemies->next->next->ship = malloc(size_ship);
+	makeShip(enemies->next->next->ship,X_EDGE/2,0,X_EDGE-1,Y_EDGE-1,CARGOSHIP);
 }
 
 void createWindows(void) {
 	#define OPTW 15  //opt window width
-	#define OPTH 5 //opt window height
+	#define OPTH 4 //opt window height
 	#define STATW 19 //status window width
 	#define STATH 5 //status window height
 	#define TEXTH 3 //text window height
@@ -629,7 +716,9 @@ int initScreen(void) {
 
 void gameLoop(void) {
 	while(play == 1) {
-		movePlayer();
+		while(player_sub->ap > 0) {
+			playerTurn();
+		}
 	}
 }
 
@@ -641,9 +730,21 @@ void exitGame(void) {
 void printPieces(void) {
 	wclear(main_win);
 	mvwprintw(main_win,player_sub->y,player_sub->x,"X");
-	mvwprintw(main_win,enemy_sub->y,enemy_sub->x,"Y");
-	mvwprintw(main_win,enemy_boat->y,enemy_boat->x,"Z");
-	mvwprintw(main_win,cargo_ship->y,cargo_ship->x,"C");
+	ENEMIES *head = enemies;
+	char c[2];
+	c[1] = '\n';
+	while(head != NULL) {
+		switch(head->ship->type) {
+		case SUBMARINE: c[0] = 'Y';
+			break;
+		case SURFACESHIP: c[0] ='Z';
+			break;
+		default:c[0] = 'C';
+			break;			
+		}
+		mvwprintw(main_win,head->ship->y,head->ship->x,"%s",c);
+		head = head->next;
+	}
 	wrefresh(main_win);
 
 }
@@ -656,6 +757,7 @@ int main(void) {
 		createPieces();
 		checkPiecesLocation();
 		printPieces();
+		printOptWin();
 		updateLocationDisplay();
 		updateHealthDisplay();
 		updateAOETorDisplay();
