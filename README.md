@@ -31,7 +31,7 @@
    
 ##to do
   - [x] add ability to move player sub
-  - [ ] add ability to fire torpedos and sink enemy ships
+  - [x] add ability to fire torpedos and sink enemy ships
   - [ ] add sonar to detect enemy ships
   - [ ] add ability to be damaged by depth charges and AOE torpedoes
   - [ ] add turns for each player
