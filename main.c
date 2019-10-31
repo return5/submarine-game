@@ -9,11 +9,11 @@
 //---------------------------------------- headers ------------------------------------------------
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <ncurses.h>
 #include <time.h>
+#include <math.h>
 #include "units.h"
-#include <unistd.h>
+
 //---------------------------------------- prototypes ----------------------------------------------
 int getRandom(const int start, const int end);
 void checkIfTargetHitX(SHIP *const target, const int start, const int end);
@@ -31,7 +31,6 @@ int torpedoFireLineLeft(void);
 int torpedoFireLineDown(void);
 int torpedoFireLineUp(void);
 void setTorpedoFireLine(void);
-void updateDirection(SHIP *const const ship, const int new_x, const int new_y);
 void updateAPDisplay(void);
 void updateLastDetected(void);
 void updateAOETorDisplay(void);
@@ -40,7 +39,8 @@ void updateLocationDisplay(void);
 void printToMain(const int x, const int y, const char *const str);
 void printToTxtScr(const int x, const int y, const char *const str);
 int moveShip(SHIP *const ship, const int new_x, const int new_y, const int new_z);
-int getDirection(int *const direction);
+void printToOptWin(const int x, const int y, const char *const str);
+int getDirection(void);
 void movePlayer(void);
 void makeBoat(SHIP *const ship);
 void makeSub(SHIP *const ship);
@@ -62,8 +62,11 @@ void checkMouseLocation(const int x, const int y);
 void useTurbo(void);
 void repairShip(void);
 void useSonar(void);
-void displayAOE(int const x, int const y);
+void displayAOE(const int limit);
 void useAOE(void);
+int getX(const int limit);
+int getY(const int limit);
+void damageTarget(SHIP *const target, const int damage);
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 #define Y_EDGE 25
@@ -105,9 +108,64 @@ void targetDestroyed(SHIP *const target) {
 		default: printToTxtScr(0,0,"congragulations, you destroyed enemy cargo ship.");
 			break;
 	}
-	getch();
 	target->health = 0;
 	target->ap = 0;
+	if(enemies->ship == target) {
+		enemies = enemies->next;
+	}
+	else {
+		ENEMIES *head = enemies;
+		ENEMIES *prev;
+		while(head->ship != target && head != NULL) {
+			prev = head;
+			head = head->next;
+		}
+		prev->next = head->next;
+	}
+	getch();
+}
+
+void damageTarget(SHIP *const target, const int damage) {
+	target->health -= damage;
+	if(target->health <= 0) {
+		targetDestroyed(target);
+	}
+}
+
+//if enemy ship is within blast radius then do damage to it. 
+void checkIfAOEHit(SHIP *const target, const int limit) {
+	const int dist_x = abs(getX(limit) - target->x) / X_NORM;
+	const int dist_y = abs(getY(limit) - target->y);
+	int damage = 0;
+	switch((int)abs(player_sub->z - target->z)) {
+		case 0: 
+			if(dist_x < 1 && dist_y < 1 ){
+				damage = 100;
+			}
+			else if (dist_x < 2 && dist_y < 2) {
+				damage = 75;
+			}
+			else if (dist_x < 3 || dist_y < 3) {
+				damage = 50;
+			}
+			break;
+		case 1: 
+			if(dist_x < 1 && dist_y < 1) {
+				damage = 75;
+			}
+			else if (dist_x < 2 && dist_y < 2) {
+				damage = 50;
+			}
+			break;
+		case 2:
+			if(dist_x ==  0 && dist_y == 0) {
+				damage = 50;
+			}
+			break;
+		default: //missed
+			break;
+	}
+	damageTarget(target,damage);
 }
 
 //if firing along x axis, checks if enemy ship is hit
@@ -141,7 +199,12 @@ void getSingleTargetX(SHIP **targets, const int index,const int abs,const int li
 			target = targets[i];
 		}
 	}
-	checkIfTargetHitX(target,((abs == -1)? player_sub->x - limit : player_sub->x + 1),((abs == -1)? player_sub->x - 1 : player_sub->x + limit));
+	if(PLAYER->using_aoe) {
+		checkIfAOEHit(target,limit);
+	}
+	else {
+		checkIfTargetHitX(target,((abs == -1)? player_sub->x - limit : player_sub->x + 1),((abs == -1)? player_sub->x - 1 : player_sub->x + limit));
+	}
 }
 
 //sets target to the ship which is closest to player_sub in y direction
@@ -153,12 +216,20 @@ void getSingleTargetY(SHIP **targets, const int index,const int abs,const int li
 			target = targets[i];
 		}
 	}
-	checkIfTargetHitY(target,((abs == -1)? player_sub->y - limit : player_sub->y + 1),((abs == -1)? player_sub->y - 1 : player_sub->y + limit));
+	if(PLAYER->using_aoe) {
+		checkIfAOEHit(target,limit);
+	}
+	else {
+		checkIfTargetHitY(target,((abs == -1)? player_sub->y - limit : player_sub->y + 1),((abs == -1)? player_sub->y - 1 : player_sub->y + limit));
+	}
 }
 
 //checks if enemy ship is on the same z or one above/below to player sub
 int checkZ(const SHIP *const ship) {
-	if(player_sub->z == ship->z) {
+	if(PLAYER->using_aoe) {
+		return 1;
+	}
+	else if(player_sub->z == ship->z) {
 		return 1;
 	}
 	else if(player_sub->z == ship->z+1) {
@@ -266,6 +337,9 @@ void fireTorpedo(const int limit) {
 		case RIGHT: fireTorpedoRight(limit);
 			break;
 	}
+	if(PLAYER->using_aoe) {
+		PLAYER->num_aoetor--;
+	}
 }
 
 void confirmFireTorpedo(const int limit) {
@@ -278,6 +352,7 @@ void confirmFireTorpedo(const int limit) {
 			else {
 				printToTxtScr(0,0,"sorry, but you lack suffecient AP");
 			}
+			printToOptWin(2,1," ");
 			break;
 		case 'w': 
 			player_sub->direction_facing = FORWARD;
@@ -306,7 +381,33 @@ void confirmFireTorpedo(const int limit) {
 	printPieces();
 }
 
-void displayAOE(int const x, int const y) {
+int getY(const int limit) {
+	switch(player_sub->direction_facing) {
+		case FORWARD: return player_sub->y - limit;
+			break;
+		case BACK: return player_sub->y + limit;
+			break;
+		case LEFT: 
+		case RIGHT: return player_sub->y;
+			break;
+	}
+}
+
+int getX(const int limit) {
+	switch(player_sub->direction_facing) {
+		case FORWARD: 
+		case BACK: return player_sub->x;
+			break;
+		case LEFT: return player_sub->x - limit;
+			break;
+		case RIGHT: return player_sub->x + limit;
+			break;
+	}
+}
+
+void displayAOE(const int limit) {
+	int x = getX(limit);
+	int y = getY(limit);
 	int offset = 2;
 	for(int i = 0; i < 3; i++) {
 		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
@@ -331,7 +432,7 @@ int torpedoFireLineRight(void) {
 int torpedoFireLineLeft(void) {
 	const int limit = (player_sub->x > TORPEDODISTANCE * X_NORM) ? TORPEDODISTANCE * X_NORM : player_sub->x;
 	for(int i = X_NORM; i < limit; i+= X_NORM) {
-			printToMain(player_sub->x-i,player_sub->y,"-");
+		printToMain(player_sub->x-i,player_sub->y,"-");
 	}
 	printToMain(player_sub->x-limit,player_sub->y,"<");
 	return limit;
@@ -361,51 +462,23 @@ void setTorpedoFireLine(void) {
 	switch(player_sub->direction_facing) {
 		case FORWARD: 
 			limit = torpedoFireLineUp();
-			if(PLAYER->using_aoe) {
-				displayAOE(player_sub->x,player_sub->y - limit);
-			}
 			break;
 		case BACK: 
 			limit = torpedoFireLineDown();
-			if(PLAYER->using_aoe) {
-				displayAOE(player_sub->x,player_sub->y + limit);
-			}
 			break;
 		case LEFT: 
 			limit = torpedoFireLineLeft();
-			if(PLAYER->using_aoe) {
-				displayAOE(player_sub->x - limit, player_sub->y);
-			}
 			break;
 		case RIGHT: 
 			limit = torpedoFireLineRight();
-			if(PLAYER->using_aoe) {
-				displayAOE(player_sub->x + limit, player_sub->y);
-			}
 			break;
+	}
+
+	if(PLAYER->using_aoe) {
+		displayAOE(limit);
 	}
 	wattroff(main_win,COLOR_PAIR(1)); //turn color red off
 	confirmFireTorpedo(limit);
-}
-
-//update the direction in which the ship is facing
-void updateDirection(SHIP *const const ship, const int new_x, const int new_y) {
-	if(new_x != ship->x) {
-		if(new_x > ship->x) {
-			ship->direction_facing = RIGHT;
-		}
-		else {
-			ship->direction_facing = LEFT;
-		}
-	}
-	else if(new_y != ship->y) {
-		if(new_y > ship->y) {
-			ship->direction_facing = BACK;
-		}
-		else {
-			ship->direction_facing = FORWARD;
-		}
-	}
 }
 
 //updates the display to show ammount of action points you have left
@@ -472,7 +545,6 @@ int moveShip(SHIP *const ship, const int new_x, const int new_y, const int new_z
 		return -1;
 	}
 	else {
-		updateDirection(ship,new_x,new_y);
 		player_sub->x = new_x;
 		player_sub->y = new_y;
 		player_sub->z = new_z;
@@ -496,7 +568,11 @@ void useTurbo(void) {
 }
 
 void useAOE(void) {
-	if(PLAYER->num_aoetor) {
+	if(PLAYER->using_aoe == 1) {
+		PLAYER->using_aoe = 0;
+		printToOptWin(2,1," ");
+	}
+	else if(PLAYER->num_aoetor) {
 		PLAYER->using_aoe = 1;
 		wattron(opt_win,COLOR_PAIR(1));
 		printToOptWin(2,1,"x");
@@ -535,32 +611,30 @@ void checkMouseLocation(const int x, const int y) {
 }
 
 //gets user input to move player_sub one space in any direction.
-int getDirection(int *const direction) {
+int getDirection(void) {
 	MEVENT event;
 	switch(getch()) {
 		case 'q':
-			*direction = UP; 
 			return moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z-1);
 		case 'e':
-			*direction = DOWN; 
 			return moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z+1);
 		case 'w':
-			*direction = FORWARD; 
+			player_sub->direction_facing = FORWARD; 
 			return moveShip(player_sub,player_sub->x,(player_sub->y)-1,player_sub->z);
 		case 'a':
-			*direction = LEFT; 
+			player_sub->direction_facing = LEFT; 
 			return moveShip(player_sub,player_sub->x - X_NORM,player_sub->y,player_sub->z);
 		case 's':
-			*direction = BACK; 
+			player_sub->direction_facing = BACK; 
 			return moveShip(player_sub,player_sub->x,player_sub->y+1,player_sub->z);
 		case 'd':
-			*direction = RIGHT; 
+			player_sub->direction_facing = RIGHT; 
 			return moveShip(player_sub,player_sub->x + X_NORM,player_sub->y,player_sub->z);
 		case 'f': return 1;  //exit menu when f key is pressed
 			break;
 		case 'g':
 			setTorpedoFireLine();
-			return -1;
+			return 1;
 			break;
 		case KEY_MOUSE:
 			if(getmouse(&event) == OK) { 
@@ -568,6 +642,7 @@ int getDirection(int *const direction) {
 					checkMouseLocation(event.x,event.y);
 				}
 			}
+			return 1;
 			break;
 		default: 
 			printToTxtScr(0,0,"wrong choice, please try again");
@@ -577,15 +652,15 @@ int getDirection(int *const direction) {
 }
 
 void movePlayer(void) {
-	int direction;
 	do {
 		printToTxtScr(0,0,"'w''a''s''d' keys moves sub forward, back, left right.\n'q' and 'e' moves sub up and down.\n'f' exits menu");
-	} while(getDirection(&direction) == -1);
+	} while(getDirection() == -1);
 	printPieces();
 	updateLocationDisplay();
 	updateHealthDisplay();
 	updateAOETorDisplay();
 	updateLastDetected();
+	//player_sub->ap--;
 }
 
 void playerTurn(void) {
@@ -731,18 +806,17 @@ void printPieces(void) {
 	wclear(main_win);
 	mvwprintw(main_win,player_sub->y,player_sub->x,"X");
 	ENEMIES *head = enemies;
-	char c[2];
-	c[1] = '\n';
+	char c;
 	while(head != NULL) {
 		switch(head->ship->type) {
-		case SUBMARINE: c[0] = 'Y';
+		case SUBMARINE: c = 'Y';
 			break;
-		case SURFACESHIP: c[0] ='Z';
+		case SURFACESHIP: c ='Z';
 			break;
-		default:c[0] = 'C';
+		default:c = 'C';
 			break;			
 		}
-		mvwprintw(main_win,head->ship->y,head->ship->x,"%s",c);
+		mvwprintw(main_win,head->ship->y,head->ship->x,"%c",c);
 		head = head->next;
 	}
 	wrefresh(main_win);
