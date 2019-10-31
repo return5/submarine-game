@@ -67,6 +67,13 @@ void useAOE(void);
 int getX(const int limit);
 int getY(const int limit);
 void damageTarget(SHIP *const target, const int damage);
+void displaySonar(void);
+void printNumSign(const int i,const int j, const int x, const int y, const int color);
+void checkIfDetected(const int i, const int j);
+void shipDetected(SHIP *const ship);
+void printLastDetected(SHIP *const ship);
+void checkIfAOEHit(SHIP *const target, const int limit);
+void animateTorpedo(const int limit);
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 #define Y_EDGE 25
@@ -77,6 +84,9 @@ void damageTarget(SHIP *const target, const int damage);
 #define SHIP_3 enemies->next->next->ship
 #define PLAYER player_sub->ship->sub
 #define TORPEDODISTANCE 10 //distance a torpedo can fire.
+#define RED_COLOR 1
+#define GREEN_COLOR 2
+#define BLUE_COLOR 3
 
 enum DIRECTION {UP,DOWN,FORWARD,BACK,LEFT,RIGHT};
 
@@ -90,13 +100,29 @@ static WINDOW *main_win,*opt_win,*status_win,*text_win;
 static SHIP *player_sub; //player controlled submarine
 static ENEMIES *enemies; //holds enemy ships
 static int play = 1;
-static int has_detected = 0; //when player is first detected it flips to one
 
 //---------------------------------------- code ---------------------------------------------------
 
 
 int getRandom(const int start, const int end) {
 	return (rand() % (end - start)) + start;
+}
+
+void animateTorpedo(const int limit) {
+	for(int i = 1; i <= limit; i++) {
+		switch (player_sub->direction_facing) {
+			case FORWARD: printToMain(player_sub->x,player_sub->y-i,"|");
+				break;
+			case BACK: printToMain(player_sub->x,player_sub->y+i,"|");
+				break;
+			case LEFT: printToMain(player_sub->x-(i * X_NORM),player_sub->y,"-");
+				break; 
+			case RIGHT: printToMain(player_sub->x+(i * X_NORM),player_sub->y,"-");
+				break;
+		}			
+		nanosleep((const struct timespec[]){{0, 100000000L}}, NULL);
+		printPieces();
+	}
 }
 
 void targetDestroyed(SHIP *const target) {
@@ -170,10 +196,13 @@ void checkIfAOEHit(SHIP *const target, const int limit) {
 
 //if firing along x axis, checks if enemy ship is hit
 void checkIfTargetHitX(SHIP *const target, const int start, const int end) {
+	printPieces();
 	if(target->x >= start && target->x <= end) {
+		animateTorpedo(abs(player_sub->x - target->x) / X_NORM);
 		targetDestroyed(target);
 	}
 	else {
+		animateTorpedo(abs(start - end) / X_NORM);
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -181,10 +210,13 @@ void checkIfTargetHitX(SHIP *const target, const int start, const int end) {
 
 //if firing along y axis, checks if an enemy ship was hit
 void checkIfTargetHitY(SHIP *const target, const int start, const int end) {
+	printPieces();
 	if(target->y >= start && target->y <= end) {
+		animateTorpedo(abs(player_sub->y - target->y));
 		targetDestroyed(target);
 	}
 	else {
+		animateTorpedo(abs(start - end));
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -258,6 +290,8 @@ void fireTorpedoRight(const int limit) {
 		getSingleTargetX(targets,index,1,limit);
 	}
 	else {
+		printPieces();
+		animateTorpedo(limit / X_NORM);
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -278,6 +312,8 @@ void fireTorpedoLeft(const int limit) {
 		getSingleTargetX(targets,index,-1,limit);
 	}
 	else {
+		printPieces();
+		animateTorpedo(limit / X_NORM);
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -299,6 +335,8 @@ void fireTorpedoBack(const int limit) {
 		getSingleTargetY(targets,index,1,limit);
 	}
 	else {
+		printPieces();
+		animateTorpedo(limit);
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -320,6 +358,8 @@ void fireTorpedoForward(const int limit) {
 		getSingleTargetY(targets,index,-1,limit);
 	}
 	else {
+		printPieces();
+		animateTorpedo(limit);
 		printToTxtScr(0,0,"sorry, torpedo missed target.");
 		getch();
 	}
@@ -411,10 +451,7 @@ void displayAOE(const int limit) {
 	int offset = 2;
 	for(int i = 0; i < 3; i++) {
 		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
-			printToMain(x+j,y-i,"#");
-			printToMain(x-j,y-i,"#");
-			printToMain(x+j,y+i,"#");
-			printToMain(x-j,y+i,"#");
+			printNumSign(i,j,x,y,RED_COLOR);
 		}
 		offset--;
 	}
@@ -458,7 +495,7 @@ int torpedoFireLineUp(void) {
 
 void setTorpedoFireLine(void) {
 	int limit;
-	wattron(main_win,COLOR_PAIR(1));  //turn color red on
+	wattron(main_win,COLOR_PAIR(RED_COLOR));  //turn color red on
 	switch(player_sub->direction_facing) {
 		case FORWARD: 
 			limit = torpedoFireLineUp();
@@ -477,7 +514,7 @@ void setTorpedoFireLine(void) {
 	if(PLAYER->using_aoe) {
 		displayAOE(limit);
 	}
-	wattroff(main_win,COLOR_PAIR(1)); //turn color red off
+	wattroff(main_win,COLOR_PAIR(RED_COLOR)); //turn color red off
 	confirmFireTorpedo(limit);
 }
 
@@ -489,7 +526,7 @@ void updateAPDisplay(void) {
 
 //update the display to show how many turns since last detected
 void updateLastDetected(void) {
-	if(has_detected) {
+	if(player_sub->detected) {
 		PLAYER->last_detected++;
 	}
 	mvwprintw(status_win,3,0,"detected: %d ",PLAYER->last_detected);
@@ -533,6 +570,23 @@ void printToTxtScr(const int x, const int y, const char *const str) {
 	wrefresh(text_win);
 }
 
+void printLastDetected(SHIP *const ship) {
+	if(ship->detected && ship->type == SUBMARINE) {
+		wattron(main_win,COLOR_PAIR(BLUE_COLOR));
+		printToMain(ship->last_knownx,ship->last_knowny,"O"); //display blue icon where sub is located
+		wattroff(main_win,COLOR_PAIR(BLUE_COLOR));
+	}
+}
+
+void printNumSign(const int i, const int j, const int x, const int y, const int color) {
+	wattron(main_win,COLOR_PAIR(color));
+	printToMain(x + j,y - i,"#");
+	printToMain(x - j,y - i,"#");
+	printToMain(x + j,y + i,"#");
+	printToMain(x - j,y + i,"#");
+	wattroff(main_win,COLOR_PAIR(color));
+}
+
 //checks if ship is at boundary, and if not, moves ship to new location, else returns -1
 int moveShip(SHIP *const ship, const int new_x, const int new_y, const int new_z) {
 	if( new_z < 0 || new_z > 4) {
@@ -556,9 +610,9 @@ void useTurbo(void) {
 	if(player_sub->turbo == 1) {
 		player_sub->ap += 2;
 		player_sub->turbo = 0;
-		wattron(opt_win,COLOR_PAIR(1));
+		wattron(opt_win,COLOR_PAIR(RED_COLOR));
 		printToOptWin(2,0,"x");
-		wattroff(opt_win,COLOR_PAIR(1));
+		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
 		updateAPDisplay();
 	}
 	else {
@@ -572,11 +626,15 @@ void useAOE(void) {
 		PLAYER->using_aoe = 0;
 		printToOptWin(2,1," ");
 	}
+	if(player_sub->ap < 2) {
+		printToTxtScr(0,0,"sorry, but you dont have enough AP.");
+		getch();
+	}
 	else if(PLAYER->num_aoetor) {
 		PLAYER->using_aoe = 1;
-		wattron(opt_win,COLOR_PAIR(1));
+		wattron(opt_win,COLOR_PAIR(RED_COLOR));
 		printToOptWin(2,1,"x");
-		wattroff(opt_win,COLOR_PAIR(1));
+		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
 	}
 	else {
 		printToTxtScr(0,0,"sorry, but you are out of AOE torpedoes.");
@@ -584,8 +642,59 @@ void useAOE(void) {
 	}
 }
 
-void useSonar(void) {
+//if sonar detects a submarine
+void shipDetected(SHIP *const ship) {
+	ship->last_knownx = ship->x;
+	ship->last_knowny = ship->y;
+	ship->last_knownz = ship->z;
+	ship->ship->sub->last_detected = 0;
+	ship->detected = 1;
+	(ship != player_sub)? printLastDetected(ship),printToTxtScr(0,0,"enemy ship located"): printToTxtScr(0,0,"enemy has detected you");
+}
 
+
+//checks to see if enemy sub has been found with sonar.
+void checkIfDetected(const int i, const int j) {
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		if(head->ship->type == SUBMARINE) { //only looking for subs. 
+			if(player_sub->x + j == head->ship->x && head->ship->y == player_sub->y - i) {
+				shipDetected(head->ship);
+			}
+			else if(player_sub->x - j == head->ship->x && head->ship->y == player_sub->y - i) {
+				shipDetected(head->ship);			
+			}
+			else if(player_sub->x + j == head->ship->x && head->ship->y == player_sub->y + i) {
+				shipDetected(head->ship);			
+			}
+			else if(player_sub->x - j == head->ship->x && head->ship->y == player_sub->y + i) {
+				shipDetected(head->ship);
+			}
+		}
+		head = head->next;
+	}
+}
+
+void displaySonar(void) {
+	int offset = 6;
+	for(int i = 0; i < 7; i++) {
+		for(int j = 0; j <= offset * X_NORM; j += X_NORM) {
+			printNumSign(i,j,player_sub->x,player_sub->y,GREEN_COLOR);
+			nanosleep((const struct timespec[]){{0, 4500000L}}, NULL);
+			checkIfDetected(i,j);
+		}
+		offset--;
+	}
+	getch();
+}
+
+void useSonar(void) {
+	wattron(opt_win,COLOR_PAIR(RED_COLOR));
+	printToOptWin(2,2,"x");
+	wattroff(opt_win,COLOR_PAIR(RED_COLOR));
+	displaySonar();
+	shipDetected(player_sub);
+	printToOptWin(2,2," ");
 }
 
 void repairShip(void) {
@@ -711,6 +820,7 @@ void makeShip(SHIP *const ship,const int x_start, const int y_start, const int x
 	ship->type = type;
 	ship->turbo = 1;
 	ship->ap = 2;
+	ship->detected = 0;
 	(type == SUBMARINE)? makeSub(ship) : makeBoat(ship);
 }
 
@@ -770,7 +880,9 @@ void createWindows(void) {
 
 void initColors(void) {
 	start_color();
-	init_pair(1,COLOR_RED,COLOR_BLACK);
+	init_pair(RED_COLOR,COLOR_RED,COLOR_BLACK);
+	init_pair(GREEN_COLOR,COLOR_GREEN,COLOR_BLACK);
+	init_pair(BLUE_COLOR,COLOR_BLUE,COLOR_BLACK);
 }
 
 //initialize ncurses
@@ -809,7 +921,7 @@ void printPieces(void) {
 	char c;
 	while(head != NULL) {
 		switch(head->ship->type) {
-		case SUBMARINE: c = 'Y';
+		case SUBMARINE: c = 'Y';	
 			break;
 		case SURFACESHIP: c ='Z';
 			break;
@@ -817,6 +929,7 @@ void printPieces(void) {
 			break;			
 		}
 		mvwprintw(main_win,head->ship->y,head->ship->x,"%c",c);
+		printLastDetected(head->ship);
 		head = head->next;
 	}
 	wrefresh(main_win);
