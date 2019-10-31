@@ -1,6 +1,6 @@
 # currently a work in progress
 ## intro
-- a turned based submarine combat game of exteme actiona dn excitment. an absolute adrenline rush
+- a turned based submarine combat game of exteme action and excitment. an absolute adrenline rush
 
 ## objective
  - destroy the enmy submarine and the enemy destroyer. dont get destroyed yourself
