@@ -1,0 +1,6 @@
+./src/main-0.7.c
+./src/fireTor.c
+./src/createPieces.c
+./src/makeWin.c
+./src/printStuff.c
+./src/setOpts.c
