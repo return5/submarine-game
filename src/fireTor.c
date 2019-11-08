@@ -1,4 +1,4 @@
-#include "units.h"
+//---------------------------------------- headers ------------------------------------------------
 #include "macros.h"
 #include "fireTor.h"
 #include "printStuff.h"
@@ -6,6 +6,7 @@
 #include <stdlib.h>
 
 //---------------------------------------- prototypes ----------------------------------------------
+
 void checkIfTargetHitX(SHIP *const target, const int start, const int end);
 void checkIfTargetHitY(SHIP *const target, const int start, const int end);
 void getSingleTargetX(SHIP **targets, const int index,const int abs,const int limit);
@@ -23,15 +24,29 @@ void torpedoFireLineDown(int const limit);
 void setTorpedoFireLine(void);
 int checkZ(const SHIP *const ship);
 void targetDestroyed(SHIP *const target);
-int getX(const int limit);
-int getY(const int limit);
 void damageTarget(SHIP *const target, const int damage);
-void checkIfAOEHit(SHIP *const target, const int limit);
 int getLimitX(void);
 int getLimitY(void);
+void decreaseAOEDIst(int limit);
+void increaseAOEDist(int limit);
+void checkAOEZ(SHIP *const target,const int dist_x, const int dist_y);
+void checkBlastRadius(const int x,const int y);
+void damagedShip(SHIP *const ship);
+void useAOETor(const int limit);
 
 //---------------------------------------- code ---------------------------------------------------
 
+
+void damagedShip(SHIP *const ship) {
+	switch(ship->type) {
+		case SUBMARINE: printToTxtScr(0,0,"you damaged the enemy sub.");
+			break;
+		case SURFACESHIP: printToTxtScr(0,0,"you damaged the enemy surfaceship.");
+			break;
+		default: printToTxtScr(0,0,"you damaged the enemy cargo ship.");
+			break;
+	}
+}
 
 void targetDestroyed(SHIP *const target) {
 	switch(target->type) {
@@ -56,7 +71,6 @@ void targetDestroyed(SHIP *const target) {
 		}
 		prev->next = head->next;
 	}
-	getch();
 }
 
 void damageTarget(SHIP *const target, const int damage) {
@@ -64,14 +78,18 @@ void damageTarget(SHIP *const target, const int damage) {
 	if(target->health <= 0) {
 		targetDestroyed(target);
 	}
+	else if(damage == 0) {
+		printToTxtScr(0,0,"sorry, torpedo missed target.");
+	}
+	else if(damage > 0) {
+		damagedShip(target);
+	}
 }
 
-//if enemy ship is within blast radius then do damage to it. 
-void checkIfAOEHit(SHIP *const target, const int limit) {
-	const int dist_x = abs(getX(limit) - target->x) / X_NORM;
-	const int dist_y = abs(getY(limit) - target->y);
+//if enemy ship is within the z of a blast, then do damage to it
+void checkAOEZ(SHIP *const target,const int dist_x, const int dist_y) {
 	int damage = 0;
-	switch((int)abs(player_sub->z - target->z)) {
+	switch(abs(player_sub->z - target->z)) {
 		case 0: 
 			if(dist_x < 1 && dist_y < 1 ){
 				damage = 100;
@@ -79,7 +97,7 @@ void checkIfAOEHit(SHIP *const target, const int limit) {
 			else if (dist_x < 2 && dist_y < 2) {
 				damage = 75;
 			}
-			else if (dist_x < 3 || dist_y < 3) {
+			else if (dist_x < 3 && dist_y < 3) {
 				damage = 50;
 			}
 			break;
@@ -91,7 +109,7 @@ void checkIfAOEHit(SHIP *const target, const int limit) {
 				damage = 50;
 			}
 			break;
-		case 2:
+		case 2:	
 			if(dist_x ==  0 && dist_y == 0) {
 				damage = 50;
 			}
@@ -99,7 +117,23 @@ void checkIfAOEHit(SHIP *const target, const int limit) {
 		default: //missed
 			break;
 	}
-	damageTarget(target,damage);
+	if(damage > 0) {
+		damageTarget(target,damage);
+		getch();
+	}
+}
+
+//checks if an enemy ship is within the blast radius in x and y
+void checkBlastRadius(const int x,const int y) {
+	ENEMIES *head = enemies;
+	while(head != NULL) {
+		const int dist_x = abs(x - (head->ship->x / X_NORM));
+		const int dist_y = abs(y - head->ship->y);
+		if( dist_x < 3 &&  dist_y < 3){
+			checkAOEZ(head->ship,dist_x,dist_y);
+		}
+		head = head->next;
+	}
 }
 
 //if firing along x axis, checks if enemy ship is hit
@@ -139,12 +173,7 @@ void getSingleTargetX(SHIP **targets, const int index,const int abs,const int li
 			target = targets[i];
 		}
 	}
-	if(PLAYER->using_aoe) {
-		checkIfAOEHit(target,limit);
-	}
-	else {
-		checkIfTargetHitX(target,((abs == -1)? player_sub->x - limit : player_sub->x + 1),((abs == -1)? player_sub->x - 1 : player_sub->x + limit));
-	}
+	checkIfTargetHitX(target,((abs == -1)? player_sub->x - limit : player_sub->x + 1),((abs == -1)? player_sub->x - 1 : player_sub->x + limit));
 }
 
 
@@ -157,12 +186,8 @@ void getSingleTargetY(SHIP **targets, const int index,const int abs,const int li
 			target = targets[i];
 		}
 	}
-	if(PLAYER->using_aoe) {
-		checkIfAOEHit(target,limit);
-	}
-	else {
-		checkIfTargetHitY(target,((abs == -1)? player_sub->y - limit : player_sub->y + 1),((abs == -1)? player_sub->y - 1 : player_sub->y + limit));
-	}
+	checkIfTargetHitY(target,((abs == -1)? player_sub->y - limit : player_sub->y + 1),((abs == -1)? player_sub->y - 1 : player_sub->y + limit));
+	
 }
 
 //checks if enemy ship is on the same z or one above/below to player sub
@@ -273,23 +298,36 @@ void fireTorpedoForward(const int limit) {
 	}
 }
 
+//player fires an aoe torpedo
+void useAOETor(const int limit) {
+	PLAYER->num_aoetor--;
+	player_sub->ap -= 2;
+	PLAYER->using_aoe = 0;
+	printToOptWin(2,1," ");
+	animateTorpedo((player_sub->direction_facing == LEFT || player_sub->direction_facing == RIGHT) ? limit / X_NORM : limit) ;
+	displayAOE(limit,YELLOW_COLOR,1);
+	checkBlastRadius((getX(limit) / X_NORM),getY(limit));
+	getch();
+}
+
 void fireTorpedo(const int limit) {
-	switch(player_sub->direction_facing) {
-		case FORWARD: fireTorpedoForward(limit);
-			break;
-		case BACK: fireTorpedoBack(limit);
-			break;
-		case LEFT: fireTorpedoLeft(limit);
-			break;
-		case RIGHT: fireTorpedoRight(limit);
-			break;
-		default: //do nothing. should not reach here.
-			break;
+	if(PLAYER->using_aoe == 1) {
+		useAOETor(limit);
 	}
-	if(PLAYER->using_aoe) {
-		PLAYER->num_aoetor--;
-		PLAYER->using_aoe = 0;
-		printToOptWin(2,1," ");
+	else {
+		switch(player_sub->direction_facing) {
+			case FORWARD: fireTorpedoForward(limit);
+				break;
+			case BACK: fireTorpedoBack(limit);
+				break;
+			case LEFT: fireTorpedoLeft(limit);
+				break;
+			case RIGHT: fireTorpedoRight(limit);
+				break;
+			default: //do nothing. should not reach here.
+				break;
+		}
+		player_sub->ap -= 1;
 	}
 }
 
@@ -325,8 +363,8 @@ void decreaseAOEDIst(int limit) {
 		default: //do nothing
 			break;	
 	}
-	displayAOE(limit);
 	wattroff(main_win,COLOR_PAIR(RED_COLOR));
+	displayAOE(limit,RED_COLOR,0);
 	confirmFireTorpedo(limit);		
 }
 
@@ -362,8 +400,8 @@ void increaseAOEDist(int limit) {
 		default: //do nothing
 			break;	
 	}
-	displayAOE(limit);
 	wattroff(main_win,COLOR_PAIR(RED_COLOR));
+	displayAOE(limit,RED_COLOR,0);
 	confirmFireTorpedo(limit);				
 }
 
@@ -449,17 +487,6 @@ int getX(const int limit) {
 	}
 	return 0;
 }
-void displayAOE(const int limit) {
-	int x = getX(limit);
-	int y = getY(limit);
-	int offset = 2;
-	for(int i = 0; i < 3; i++) {
-		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
-			printNumSign(i,j,x,y,RED_COLOR);
-		}
-		offset--;
-	}
-}
 
 void torpedoFireLineRight(int const limit) {
 	for(int i = X_NORM; i < limit; i+= X_NORM) {
@@ -533,10 +560,9 @@ void setTorpedoFireLine(void) {
 		default: limit = 0;  //default init. shouldnt reach here. 
 			break;
 	}
-
-	if(PLAYER->using_aoe) {
-		displayAOE(limit);
-	}
 	wattroff(main_win,COLOR_PAIR(RED_COLOR)); //turn color red off
+	if(PLAYER->using_aoe == 1) {
+		displayAOE(limit,RED_COLOR,0);
+	}
 	confirmFireTorpedo(limit);
 }

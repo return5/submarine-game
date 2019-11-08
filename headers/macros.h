@@ -9,3 +9,4 @@
 #define RED_COLOR 1
 #define GREEN_COLOR 2
 #define BLUE_COLOR 3
+#define YELLOW_COLOR 4

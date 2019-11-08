@@ -44,6 +44,7 @@ void initColors(void) {
 	init_pair(RED_COLOR,COLOR_RED,COLOR_BLACK);
 	init_pair(GREEN_COLOR,COLOR_GREEN,COLOR_BLACK);
 	init_pair(BLUE_COLOR,COLOR_BLUE,COLOR_BLACK);
+	init_pair(YELLOW_COLOR,COLOR_YELLOW,COLOR_BLACK);
 }
 
 //initialize ncurses

@@ -1,4 +1,5 @@
-#include "units.h"
+//---------------------------------------- headers ------------------------------------------------
+
 #include "macros.h"
 #include "fireTor.h"
 #include "printStuff.h"
@@ -15,15 +16,30 @@ void shipDetected(SHIP *const ship);
 
 
 void useSonar(void) {
-	wattron(opt_win,COLOR_PAIR(RED_COLOR));
-	printToOptWin(2,2,"x");
-	wattroff(opt_win,COLOR_PAIR(RED_COLOR));
-	displaySonar();
-	shipDetected(player_sub);
-	printToOptWin(2,2," ");
+	if(player_sub->ap > 0) {
+		wattron(opt_win,COLOR_PAIR(RED_COLOR));
+		printToOptWin(2,2,"x");
+		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
+		displaySonar();
+		shipDetected(player_sub);
+		printToOptWin(2,2," ");
+		player_sub->ap--;
+	}
+	else {
+		printToTxtScr(0,0,"sorry, but you dont have enough ap");
+	}
 }
 
 void repairShip(void) {
+	if(player_sub->ap >= 2) {
+		player_sub->health  += 15;
+		if(player_sub->health > 100) {
+			player_sub->health = 100;
+		}
+	}
+	else {
+		printToTxtScr(0,0,"sorry, but you dont have enough ap.");
+	}
 
 }
 
@@ -34,7 +50,6 @@ void useTurbo(void) {
 		wattron(opt_win,COLOR_PAIR(RED_COLOR));
 		printToOptWin(2,0,"x");
 		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
-		updateAPDisplay();
 	}
 	else {
 		printToTxtScr(0,0,"sorry, but you have already used turbo.");
@@ -71,8 +86,15 @@ void shipDetected(SHIP *const ship) {
 	ship->last_knownz = ship->z;
 	ship->ship->sub->last_detected = 0;
 	ship->detected = 1;
-	(ship != player_sub)? printLastDetected(ship),printToTxtScr(0,0,"enemy ship located"): printToTxtScr(0,0,"enemy has detected you");
+	if (ship != player_sub) {
+		printToTxtScr(0,0,"enemy ship located");
+		printLastDetected(ship);
+	}
+	else {
+		printToTxtScr(0,0,"enemy has detected you");
+	}
 }
+
 
 //checks to see if enemy sub has been found with sonar.
 void checkIfDetected(const int i, const int j) {

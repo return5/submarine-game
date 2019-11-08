@@ -1,4 +1,4 @@
-#include "units.h"
+//---------------------------------------- headers ------------------------------------------------
 #include "macros.h"
 #include "fireTor.h"
 #include "printStuff.h"
@@ -6,7 +6,13 @@
 #include <time.h>
 
 //---------------------------------------- prototypes ----------------------------------------------
-
+void updateAPDisplay(void);
+void updateLastDetected(void);
+void updateAOETorDisplay(void);
+void updateHealthDisplay(void);
+void updateLocationDisplay(void);
+void printPlayerSub(void);
+void printOptWin(void);
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -109,6 +115,20 @@ void displaySonar(void) {
 	getch();
 }
 
+void displayAOE(const int limit,const int color,const int delay) {
+	const int x = getX(limit);
+	const int y = getY(limit);
+	const long int sleep_time = 5700000L * delay; //how long to wait before printing next '#'
+	int offset = 2;
+	for(int i = 0; i < 3; i++) {
+		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
+			printNumSign(i,j,x,y,color);
+			nanosleep((const struct timespec[]){{0, sleep_time}}, NULL);
+		}
+		offset--;
+	}
+}
+
 void printOptWin(void) {
 	mvwprintw(opt_win,0,1,"[ ]  turbo");
 	mvwprintw(opt_win,1,1,"[ ]  AOE tor");
@@ -120,6 +140,15 @@ void printOptWin(void) {
 void printPlayerSub(void) {
 	mvwprintw(main_win,player_sub->y,player_sub->x,"x");
 	wrefresh(main_win);
+}
+
+void updateBoard(void) {
+	printPieces();
+	updateLocationDisplay();
+	updateHealthDisplay();
+	updateAOETorDisplay();
+	updateLastDetected();
+	updateAPDisplay();
 }
 
 void printPieces(void) {
