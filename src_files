@@ -4,3 +4,4 @@
 ./src/makeWin.c
 ./src/printStuff.c
 ./src/setOpts.c
+./src/playerturn.c
