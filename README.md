@@ -32,7 +32,7 @@
 ##to do
   - [x] add ability to move player sub
   - [x] add ability to fire torpedos and sink enemy ships
-  - [ ] add sonar to detect enemy ships
+  - [x] add sonar to detect enemy ships
   - [ ] add ability to be damaged by depth charges and AOE torpedoes
   - [ ] add turns for each player
   - [ ] add decision tree for enemy computer
