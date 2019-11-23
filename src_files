@@ -1,7 +1,10 @@
-./src/main-0.7.c
+./src/main-0.8.c
 ./src/fireTor.c
 ./src/createPieces.c
 ./src/makeWin.c
 ./src/printStuff.c
 ./src/setOpts.c
 ./src/playerturn.c
+./src/computerturn.c
+./src/makedectree.c
+./src/movement.c
