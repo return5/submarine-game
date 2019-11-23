@@ -4,6 +4,7 @@
 #include "fireTor.h"
 #include "printStuff.h"
 #include "setOpts.h"
+#include <stddef.h>
 
 //---------------------------------------- prototypes ----------------------------------------------
 void useTurbo(void);
@@ -17,12 +18,10 @@ void shipDetected(SHIP *const ship);
 
 void useSonar(void) {
 	if(player_sub->ap > 0) {
-		wattron(opt_win,COLOR_PAIR(RED_COLOR));
-		printToOptWin(2,2,"x");
-		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
+		printToOptWin(2,2,"x",RED_COLOR);
 		displaySonar();
 		shipDetected(player_sub);
-		printToOptWin(2,2," ");
+		printToOptWin(2,2," ",0);
 		player_sub->ap--;
 	}
 	else {
@@ -47,35 +46,28 @@ void useTurbo(void) {
 	if(player_sub->turbo == 1) {
 		player_sub->ap += 3;
 		player_sub->turbo = 0;
-		wattron(opt_win,COLOR_PAIR(RED_COLOR));
-		printToOptWin(2,0,"x");
-		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
+		printToOptWin(2,0,"x",RED_COLOR);
 	}
 	else {
 		printToTxtScr(0,0,"sorry, but you have already used turbo.");
-		getch();
 	}	
 }
 
 void useAOE(void) {
 	if(PLAYER->using_aoe == 1) {
 		PLAYER->using_aoe = 0;
-		printToOptWin(2,1," ");
+		printToOptWin(2,1," ",0);
 	}
 	else if(player_sub->ap < 2) {
 		printToTxtScr(0,0,"sorry, but you dont have enough AP.");
-		getch();
 	}
 	else if(PLAYER->num_aoetor) {
 		PLAYER->using_aoe = 1;
-		wattron(opt_win,COLOR_PAIR(RED_COLOR));
-		printToOptWin(2,1,"x");
-		wattroff(opt_win,COLOR_PAIR(RED_COLOR));
+		printToOptWin(2,1,"x",RED_COLOR);
 		setTorpedoFireLine();
 	}
 	else {
 		printToTxtScr(0,0,"sorry, but you are out of AOE torpedoes.");
-		getch();
 	}
 }
 

@@ -4,6 +4,7 @@
 #include "printStuff.h"
 #include "setOpts.h"
 #include <time.h>
+#include "windows.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 void updateAPDisplay(void);
@@ -19,13 +20,13 @@ void printOptWin(void);
 void animateTorpedo(const int limit) {
 	for(int i = 1; i <= limit; i++) {
 		switch (player_sub->direction_facing) {
-			case FORWARD: printToMain(player_sub->x,player_sub->y-i,"|");
+			case FORWARD: printToMain(player_sub->x,player_sub->y-i,"|",0);
 				break;
-			case BACK: printToMain(player_sub->x,player_sub->y+i,"|");
+			case BACK: printToMain(player_sub->x,player_sub->y+i,"|",0);
 				break;
-			case LEFT: printToMain(player_sub->x-(i * X_NORM),player_sub->y,"-");
+			case LEFT: printToMain(player_sub->x-(i * X_NORM),player_sub->y,"-",0);
 				break; 
-			case RIGHT: printToMain(player_sub->x+(i * X_NORM),player_sub->y,"-");
+			case RIGHT: printToMain(player_sub->x+(i * X_NORM),player_sub->y,"-",0);
 				break;
 			default: //do nothing should never reach this one.
 				break;
@@ -67,15 +68,23 @@ void updateLocationDisplay(void) {
 	wrefresh(status_win);
 }
 
-void printToOptWin(const int x, const int y, const char *const str) {
+void printToOptWin(const int x, const int y, const char *const str, const int color) {
+	if(color != 0) {
+		wattron(opt_win,COLOR_PAIR(color));
+	}
 	mvwprintw(opt_win,y,x,"%s",str);
 	wrefresh(opt_win);
+	wattroff(opt_win,COLOR_PAIR(color));
 }
 
 //print str to main window at x,y
-void printToMain(const int x, const int y, const char *const str) {
+void printToMain(const int x, const int y, const char *const str, const int color) {	
+	if(color != 0) {
+		wattron(main_win,COLOR_PAIR(color));
+	}
 	mvwprintw(main_win,y,x,"%s",str);
 	wrefresh(main_win);
+	wattroff(main_win,COLOR_PAIR(color));
 }
 
 //print str to text_win at location x,y
@@ -87,19 +96,15 @@ void printToTxtScr(const int x, const int y, const char *const str) {
 
 void printLastDetected(SHIP *const ship) {
 	if(ship->detected && ship->type == SUBMARINE) {
-		wattron(main_win,COLOR_PAIR(BLUE_COLOR));
-		printToMain(ship->last_knownx,ship->last_knowny,"O"); //display blue icon where sub is located
-		wattroff(main_win,COLOR_PAIR(BLUE_COLOR));
+		printToMain(ship->last_knownx,ship->last_knowny,"O",BLUE_COLOR); //display blue icon where sub is located
 	}
 }
 
 void printNumSign(const int i, const int j, const int x, const int y, const int color) {
-	wattron(main_win,COLOR_PAIR(color));
-	printToMain(x + j,y - i,"#");
-	printToMain(x - j,y - i,"#");
-	printToMain(x + j,y + i,"#");
-	printToMain(x - j,y + i,"#");
-	wattroff(main_win,COLOR_PAIR(color));
+	printToMain(x + j,y - i,"#",color);
+	printToMain(x - j,y - i,"#",color);
+	printToMain(x + j,y + i,"#",color);
+	printToMain(x - j,y + i,"#",color);
 }
 
 void displaySonar(void) {

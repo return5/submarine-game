@@ -2,12 +2,17 @@
 #include "makeWin.h"
 #include "units.h"
 #include "macros.h"
+#include "windows.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 
 void createWindows(void);
 void initColors(void);
 void initScreen(void);
+
+//----------------------------------------  global vars -------------------------------------------
+
+WINDOW *main_win,*opt_win,*status_win,*text_win,*log_win;
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -21,6 +26,7 @@ void createWindows(void) {
 
 	WINDOW *game_border,*status_border,*opt_border,*text_border;
 	main_win = newwin(Y_EDGE,X_EDGE,1,1);
+	log_win = newwin(2,20,1,1);
 	opt_win = newwin(OPTH,OPTW,Y_EDGE-OPTH+1,X_EDGE+3);
 	status_win = newwin(STATH,STATW,1,X_EDGE+3);
 	text_win = newwin(TEXTH,TEXTW,Y_EDGE+3,1);
@@ -37,6 +43,7 @@ void createWindows(void) {
 	wrefresh(opt_border);
 	wrefresh(text_border);
 	wrefresh(main_win);
+	wrefresh(log_win);
 }
 
 void initColors(void) {

@@ -5,6 +5,8 @@
 #include "units.h"
 #include <stdlib.h>
 #include <time.h>
+#include "computerturn.h"
+#include "makedectree.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 
@@ -17,6 +19,7 @@ void createPieces(void);
 
 //---------------------------------------- code ---------------------------------------------------
 
+//random num in the range of start - (end -1)
 int getRandom(const int start, const int end) {
 	return (rand() % (end - start)) + start;
 }
@@ -83,4 +86,5 @@ void createPieces(void) {
 	enemies->next->next->ship = malloc(size_ship);
 	makeShip(enemies->next->next->ship,X_EDGE/2,0,X_EDGE-1,Y_EDGE-1,CARGOSHIP);
 	checkPiecesLocation();
+	makeDecTrees();  //makedectree.c
 }

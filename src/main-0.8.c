@@ -1,7 +1,7 @@
 // Submarine game
 //author: github/return5
 //license: GPL 2.0
-//version: 0.7
+//version: 0.8
 //currently a work in progress.
 //turned based game. player controls a submarine and is in a fight against an enemy submarine and an enemy destroyer.  also includes a cargo ship which can be destroyed for extra points
 
@@ -9,10 +9,11 @@
 //---------------------------------------- headers ------------------------------------------------
 #include <stdlib.h>
 #include <ncurses.h>
-#include "printStuff.h"
 #include "createPieces.h"
 #include "makeWin.h"
 #include "playerturn.h"
+#include "computerturn.h"
+#include "printStuff.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 
@@ -24,13 +25,17 @@ void playerTurn(void);
 
 
 //----------------------------------------  global vars -------------------------------------------
-static int play = 1;
+SHIP *player_sub; //player controlled submarine
+ENEMIES *enemies; //head of linked list which holds enemy ships
+int play = 1;
+FILE *file; 
 
 //---------------------------------------- code ---------------------------------------------------
 
 void gameLoop(void) {
 	while(play == 1) {
-		playerTurn();  //playerturn.h
+		playerTurn();  //playerturn.c
+		computerTurn(); //computerturn.c
 	}
 }
 
@@ -40,10 +45,11 @@ void exitGame(void) {
 }
 
 int main(void) {	
-	makeWin();   //makewin.h
-	createPieces(); //createPieces.h
-	printOptWin(); //printstuff.h
-	updateBoard(); //printstuff.h
+	file = fopen("log.txt","w");
+	makeWin();   //makewin.c
+	createPieces(); //createPieces.c
+	printOptWin(); //printstuff.c
+	updateBoard(); //printstuff.c
 	gameLoop();
 	exitGame();
 	return EXIT_SUCCESS;

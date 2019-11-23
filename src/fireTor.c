@@ -4,6 +4,7 @@
 #include "printStuff.h"
 #include "setOpts.h"
 #include <stdlib.h>
+#include <ncurses.h>
 
 //---------------------------------------- prototypes ----------------------------------------------
 
@@ -303,7 +304,7 @@ void useAOETor(const int limit) {
 	PLAYER->num_aoetor--;
 	player_sub->ap -= 2;
 	PLAYER->using_aoe = 0;
-	printToOptWin(2,1," ");
+	printToOptWin(2,1," ",0);
 	animateTorpedo((player_sub->direction_facing == LEFT || player_sub->direction_facing == RIGHT) ? limit / X_NORM : limit) ;
 	displayAOE(limit,YELLOW_COLOR,1);
 	checkBlastRadius((getX(limit) / X_NORM),getY(limit));
@@ -334,7 +335,6 @@ void fireTorpedo(const int limit) {
 //decrease the range of the AOE torpedo
 void decreaseAOEDIst(int limit) {
 	printPieces();	
-	wattron(main_win,COLOR_PAIR(RED_COLOR));
 	switch(player_sub->direction_facing) {
 		case FORWARD:
 			if(limit > 3) {
@@ -363,7 +363,6 @@ void decreaseAOEDIst(int limit) {
 		default: //do nothing
 			break;	
 	}
-	wattroff(main_win,COLOR_PAIR(RED_COLOR));
 	displayAOE(limit,RED_COLOR,0);
 	confirmFireTorpedo(limit);		
 }
@@ -371,7 +370,6 @@ void decreaseAOEDIst(int limit) {
 //increase the range of the AOE torpedo
 void increaseAOEDist(int limit) {
 	printPieces();
-	wattron(main_win,COLOR_PAIR(RED_COLOR));
 	switch(player_sub->direction_facing) {
 		case FORWARD:
 			if(player_sub->y - limit > 0 && limit < TORPEDODISTANCE) {
@@ -400,7 +398,6 @@ void increaseAOEDist(int limit) {
 		default: //do nothing
 			break;	
 	}
-	wattroff(main_win,COLOR_PAIR(RED_COLOR));
 	displayAOE(limit,RED_COLOR,0);
 	confirmFireTorpedo(limit);				
 }
@@ -416,7 +413,7 @@ void confirmFireTorpedo(const int limit) {
 			else {
 				printToTxtScr(0,0,"sorry, but you lack suffecient AP");
 			}
-			printToOptWin(2,1," ");
+			printToOptWin(2,1," ",0);
 			PLAYER->using_aoe = 0;
 			break;
 		case 'w': 
@@ -458,10 +455,9 @@ void confirmFireTorpedo(const int limit) {
 			break;
 		default: 
 			PLAYER->using_aoe = 0;
-			printToOptWin(2,1," ");
+			printToOptWin(2,1," ",0);
 			break;
 	}
-	wclear(main_win);
 	printPieces();
 }
 
@@ -490,30 +486,30 @@ int getX(const int limit) {
 
 void torpedoFireLineRight(int const limit) {
 	for(int i = X_NORM; i < limit; i+= X_NORM) {
-		printToMain(player_sub->x+i,player_sub->y,"-");
+		printToMain(player_sub->x+i,player_sub->y,"-",RED_COLOR);
 	}
-	printToMain(player_sub->x+limit,player_sub->y,">");
+	printToMain(player_sub->x+limit,player_sub->y,">",RED_COLOR);
 }
 
 void torpedoFireLineLeft(int const limit) {
 	for(int i = X_NORM; i < limit; i+= X_NORM) {
-		printToMain(player_sub->x-i,player_sub->y,"-");
+		printToMain(player_sub->x-i,player_sub->y,"-",RED_COLOR);
 	}
-	printToMain(player_sub->x-limit,player_sub->y,"<");
+	printToMain(player_sub->x-limit,player_sub->y,"<",RED_COLOR);
 }
 
 void torpedoFireLineDown(int const limit) {
 	for(int i = 1; i < limit; i++) {
-		printToMain(player_sub->x,player_sub->y + i,"|");
+		printToMain(player_sub->x,player_sub->y + i,"|",RED_COLOR);
 	}
-	printToMain(player_sub->x,player_sub->y+limit,"v");
+	printToMain(player_sub->x,player_sub->y+limit,"v",RED_COLOR);
 }
 
 void torpedoFireLineUp(int const limit) {
 	for(int i = 1; i < limit; i++) {
-		printToMain(player_sub->x,player_sub->y - i,"|");
+		printToMain(player_sub->x,player_sub->y - i,"|",RED_COLOR);
 	}
-	printToMain(player_sub->x,player_sub->y-limit,"^");
+	printToMain(player_sub->x,player_sub->y-limit,"^",RED_COLOR);
 }
 
 int getLimitX(void) {
@@ -539,7 +535,6 @@ int getLimitY(void) {
 
 void setTorpedoFireLine(void) {
 	int limit;
-	wattron(main_win,COLOR_PAIR(RED_COLOR));  //turn color red on
 	switch(player_sub->direction_facing) {
 		case FORWARD: 
 			limit = getLimitY();
@@ -560,7 +555,6 @@ void setTorpedoFireLine(void) {
 		default: limit = 0;  //default init. shouldnt reach here. 
 			break;
 	}
-	wattroff(main_win,COLOR_PAIR(RED_COLOR)); //turn color red off
 	if(PLAYER->using_aoe == 1) {
 		displayAOE(limit,RED_COLOR,0);
 	}
