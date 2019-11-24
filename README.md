@@ -29,8 +29,8 @@
      - ### warning
      - sinking cargo ship alerts enemies and will have them in hot pursuit of you
      
-  ![ScreenShot](Screenshot_1.png)
-  ![ScreenShot](Screenshot_2.png)
+  ![screenshot](Screenshot_1.png)
+  ![screenshot](Screenshot_2.png)
    
 ## to do
   - [x] add ability to move player sub
