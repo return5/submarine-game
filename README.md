@@ -25,9 +25,6 @@
     - inital placement is a random location any where on the map
   - ### cargo ship
     - has no weapons nor sonar of its own
-    - can be sunk for exta points.
-     - ### warning
-     - sinking cargo ship alerts enemies and will have them in hot pursuit of you
      
   ## difficulty selection
    - upon starting the game the player is given a few options for difficulty
@@ -55,3 +52,4 @@
   - [x] add decision tree for enemy computer 
   - [ ] fix up game display 
   - [ ] clean up code
+  - [ ] sinking enemy cargo ship sets all enemy ships after you
