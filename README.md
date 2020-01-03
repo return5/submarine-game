@@ -37,13 +37,13 @@
       - same as above and the addition of one enemy sub
    - ### hard
      - same as previous two with the addition of a second enemy destroyer
-   -- ### very hard
+   - ### very hard
       - same as hard but with the addition of a second enemy submarine.
      
   ## screenshots
   ![screenshot1](/screenshots/diff_select.png)
-  ![screenshot2](/screenshots/Screenshot_1.png)
-  ![screenshot3](/screenshots/Screenshot_2.png)
+  ![screenshot2](/screenshots/aoetor.png)
+  ![screenshot3](/screenshots/sonar.png)
   ![screenshot4](/screenshots/destroyenemysub.png)
    
 ## to do
