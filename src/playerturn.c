@@ -1,65 +1,64 @@
 //---------------------------------------- headers ------------------------------------------------
 #include "playerturn.h"
-#include "macros.h"
-#include "printStuff.h"
-#include "fireTor.h"
-#include "setOpts.h"
-#include <ncurses.h>
-#include "movement.h"
-//---------------------------------------- prototypes ----------------------------------------------
-int getUserInput(void);
-void movePlayer(void);
-
 //---------------------------------------- code ---------------------------------------------------
 
 //gets user input to move player_sub one space in any direction.
-int getUserInput(void) {
+static int getUserInput(void) {
 	MEVENT event;
 	switch(getch()) {
 		case 'q':
-			if (moveShip((void*)player_sub,player_sub->x,player_sub->y,player_sub->z-1) == -1) {
-				 printToTxtScr(0,0,"you are already at the ocean floor");
-				 getch();
-				 return -1;
-			}
-			else {
-				return 1;
+			switch (moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z-1)) {
+				 case -1: 
+					printToTxtScr(0,0,"you are already at the surface");
+					getch();
+				 	return -1;
+				 default: return 1;
 			}
 		case 'e':
-			if (moveShip((void*)player_sub,player_sub->x,player_sub->y,player_sub->z+1) == -1) {
-				 printToTxtScr(0,0,"you are already at the surface");
-				 getch();
-				 return -1;
-			}
-			else {
-				return 1;
+			switch(moveShip(player_sub,player_sub->x,player_sub->y,player_sub->z+1)) {
+				case -1:
+					printToTxtScr(0,0,"you are already at the ocean floor");
+					getch();
+					return -1;
+				default: return 1;
 			}
 		case 'w':
 			player_sub->direction_facing = FORWARD; 
-			return moveShip((void*)player_sub,player_sub->x,(player_sub->y)-1,player_sub->z);
+			return moveShip(player_sub,player_sub->x,(player_sub->y)-1,player_sub->z);
 		case 'a':
 			player_sub->direction_facing = LEFT; 
-			return moveShip((void*)player_sub,player_sub->x - X_NORM,player_sub->y,player_sub->z);
+			return moveShip(player_sub,player_sub->x - X_NORM,player_sub->y,player_sub->z);
 		case 's':
 			player_sub->direction_facing = BACK; 
-			return moveShip((void*)player_sub,player_sub->x,player_sub->y+1,player_sub->z);
+			return moveShip(player_sub,player_sub->x,player_sub->y+1,player_sub->z);
 		case 'd':
 			player_sub->direction_facing = RIGHT; 
-			return moveShip((void*)player_sub,player_sub->x + X_NORM,player_sub->y,player_sub->z);
+			return moveShip(player_sub,player_sub->x + X_NORM,player_sub->y,player_sub->z);
 		case 'f': return 1;  //exit menu when f key is pressed
-			break;
 		case 'g':
 			setTorpedoFireLine();
 			return 1;
-			break;
 		case KEY_MOUSE:
-			if(getmouse(&event) == OK) { 
-				if(event.bstate & BUTTON1_CLICKED){ //if left mouse button was clicked
-					checkMouseLocation(event.x,event.y);
-				}
+			switch(getmouse(&event)) { 
+				case OK:
+					if(event.bstate & BUTTON1_CLICKED){ //if left mouse button was clicked
+						checkMouseLocation(event.x,event.y);  //setOpts.c
+					}
+					break;
+				default: //do nothing
+					break;
 			}
 			return 1;
-			break;
+		case 'j' :
+			printToTxtScr(0,0,"exit game(y/n)?");
+			switch(getch()) {
+				case 'Y':
+				case 'y': 
+					play = 0;
+					return 1;
+				default: return -1;
+			}
+			return -1;
 		default: 
 			printToTxtScr(0,0,"wrong choice, please try again");
 			getch();
@@ -67,18 +66,28 @@ int getUserInput(void) {
 	}
 }
 
-void movePlayer(void) {
+static void movePlayer(void) {
 	do {
 		printToTxtScr(0,0,"'w''a''s''d' keys moves sub forward, back, left right.\n'q' and 'e' moves sub up and down.\n'f' exits menu");
 	} while(getUserInput() == -1);
-	updateBoard();
+}
+
+static void checkIfWin(void) {
+	if(num_enemies == 0) {
+		play = 0;       //sets play to 0 if all enemies have been destroyed
+		printToTxtScr(0,0,"congrats, you won.");
+		getch();
+	}
 }
 
 void playerTurn(void) {
-	while(player_sub->ap > 0) {
+	checkIfWin();
+	resetAP(player_sub);   //movement.c
+	updateBoard();            //printstuff.c
+	updateLastDetected();     //printstuff.c 
+	while(player_sub->ap > 0 && play == 1) {
 		movePlayer();
+		setShipAp(player_sub);    //movement.c
+		updateBoard();            //printstuff.c
 	}
-	getch();
-	updateBoard();
-	updateAP((void*)player_sub);
 }
