@@ -31,11 +31,11 @@
    - ### easy
       - one enemy destroyer and one cargo ship
    - ### normal
-      - same as above and the addition of one enemy sub
-   - ### hard
-     - same as previous two with the addition of a second enemy destroyer
-   - ### very hard
-      - same as hard but with the addition of a second enemy submarine.
+      - same as easy with the addition of one enemy sub
+   - ### difficult
+     - same as normal with the addition of a second enemy destroyer
+   - ### very difficult
+      - same as difficult with the addition of a second enemy submarine.
      
   ## screenshots
   ![screenshot1](/screenshots/diff_select.png)
