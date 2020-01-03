@@ -1,9 +1,9 @@
-# currently a work in progress
+# version 1.0
 ## intro
 - a turned based submarine combat game of exteme action and excitment. an absolute adrenline rush
 
 ## objective
- - destroy the enmy submarine and the enemy destroyer. dont get destroyed yourself
+ - destroy the enmy submarines, destroyers, and cargo ship. dont get destroyed yourself
  
  ## game pieces
   - ### player
@@ -29,15 +29,29 @@
      - ### warning
      - sinking cargo ship alerts enemies and will have them in hot pursuit of you
      
+  ## difficulty selection
+   - upon starting the game the player is given a few options for difficulty
+   - ### easy
+      - one enemy destroyer and one cargo ship
+   - ### normal
+      - same as above and the addition of one enemy sub
+   - ### hard
+     - same as previous two with the addition of a second enemy destroyer
+   -- ### very hard
+      - same as hard but with the addition of a second enemy submarine.
+     
   ## screenshots
-  ![screenshot1](/screenshots/Screenshot_1.png)
-  ![screenshot2](/screenshots/Screenshot_2.png)
+  ![screenshot1](/screenshots/diff_select.png)
+  ![screenshot2](/screenshots/Screenshot_1.png)
+  ![screenshot3](/screenshots/Screenshot_2.png)
+  ![screenshot4](/screenshots/destroyenemysub.png)
    
 ## to do
   - [x] add ability to move player sub
   - [x] add ability to fire torpedos and sink enemy ships
   - [x] add sonar to detect enemy ships
-  - [ ] add ability to be damaged by depth charges and AOE torpedoes
+  - [x] add ability to be damaged by depth charges and AOE torpedoes
   - [x] add turns for each player
-  - [ ] add decision tree for enemy computer (in progress)
-  - [ ] fix up game display (in progress)
+  - [x] add decision tree for enemy computer 
+  - [ ] fix up game display 
+  - [ ] clean up code
