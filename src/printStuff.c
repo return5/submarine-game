@@ -1,19 +1,5 @@
 //---------------------------------------- headers ------------------------------------------------
-#include "macros.h"
-#include "fireTor.h"
 #include "printStuff.h"
-#include "setOpts.h"
-#include <time.h>
-#include "windows.h"
-
-//---------------------------------------- prototypes ----------------------------------------------
-void updateAPDisplay(void);
-void updateLastDetected(void);
-void updateAOETorDisplay(void);
-void updateHealthDisplay(void);
-void updateLocationDisplay(void);
-void printPlayerSub(void);
-void printOptWin(void);
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -95,35 +81,32 @@ void printToTxtScr(const int x, const int y, const char *const str) {
 }
 
 void printLastDetected(SHIP *const ship) {
-	if(ship->detected && ship->type == SUBMARINE) {
+	if(ship->detected) {
 		printToMain(ship->last_knownx,ship->last_knowny,"O",BLUE_COLOR); //display blue icon where sub is located
 	}
 }
 
-void printNumSign(const int i, const int j, const int x, const int y, const int color) {
+static void printNumSign(const int i, const int j, const int x, const int y, const int color) {
 	printToMain(x + j,y - i,"#",color);
 	printToMain(x - j,y - i,"#",color);
 	printToMain(x + j,y + i,"#",color);
 	printToMain(x - j,y + i,"#",color);
 }
 
-void displaySonar(void) {
+void displaySonar(SHIP *const ship) {
 	int offset = 6;
 	for(int i = 0; i < 7; i++) {
 		for(int j = 0; j <= offset * X_NORM; j += X_NORM) {
-			printNumSign(i,j,player_sub->x,player_sub->y,GREEN_COLOR);
+			printNumSign(i,j,ship->x,ship->y,GREEN_COLOR);
 			nanosleep((const struct timespec[]){{0, 4500000L}}, NULL);
-			checkIfDetected(i,j);
 		}
 		offset--;
 	}
 	getch();
 }
 
-void displayAOE(const int limit,const int color,const int delay) {
-	const int x = getX(limit);
-	const int y = getY(limit);
-	const long int sleep_time = 5700000L * delay; //how long to wait before printing next '#'
+void displayAOE(const int x,const int y,const int color,const int delay) {
+	const long int sleep_time = 10000000L * delay; //how long to wait before printing next '#'
 	int offset = 2;
 	for(int i = 0; i < 3; i++) {
 		for(int j = offset * X_NORM; j >= 0; j -= X_NORM) {
@@ -152,24 +135,27 @@ void updateBoard(void) {
 	updateLocationDisplay();
 	updateHealthDisplay();
 	updateAOETorDisplay();
-	updateLastDetected();
 	updateAPDisplay();
 }
 
 void printPieces(void) {
 	wclear(main_win);
-	mvwprintw(main_win,player_sub->y,player_sub->x,"X");
+	printToMain(player_sub->x,player_sub->y,"X",0);
+	if(player_sub->detected != 0) {
+		printToMain(player_sub->last_knownx,player_sub->last_knowny,"x",BLUE_COLOR);
+	}
 	ENEMIES *head = enemies;
 	while(head != NULL) {
 		switch(head->ship->type) {
 		case SUBMARINE: printLastDetected(head->ship);	
 			break;
-		case SURFACESHIP: mvwprintw(main_win,head->ship->y,head->ship->x,"z");
+		case SURFACESHIP: printToMain(head->ship->x,head->ship->y,"z",0);
 			break;
-		default: mvwprintw(main_win,head->ship->y,head->ship->x,"c");
+		case CARGOSHIP: printToMain(head->ship->x,head->ship->y,"c",0);
+			break;
+		default: printToMain(head->ship->x,head->ship->y,"c",0);
 			break;			
 		}
 		head = head->next;
 	}
-	wrefresh(main_win);
 }

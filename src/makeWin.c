@@ -1,24 +1,17 @@
 //---------------------------------------- headers ------------------------------------------------
 #include "makeWin.h"
-#include "units.h"
-#include "macros.h"
-#include "windows.h"
 
-//---------------------------------------- prototypes ----------------------------------------------
-
-void createWindows(void);
-void initColors(void);
-void initScreen(void);
 
 //----------------------------------------  global vars -------------------------------------------
 
-WINDOW *main_win,*opt_win,*status_win,*text_win,*log_win;
+WINDOW *main_win,*opt_win,*status_win,*text_win,*start_win,*start_border;
+int difficulty = 2;
 
 //---------------------------------------- code ---------------------------------------------------
 
-void createWindows(void) {
+static void createWindows(void) {
 	#define OPTW 15  //opt window width
-	#define OPTH 4 //opt window height
+	#define OPTH 4   //opt window height
 	#define STATW 19 //status window width
 	#define STATH 5 //status window height
 	#define TEXTH 3 //text window height
@@ -26,7 +19,6 @@ void createWindows(void) {
 
 	WINDOW *game_border,*status_border,*opt_border,*text_border;
 	main_win = newwin(Y_EDGE,X_EDGE,1,1);
-	log_win = newwin(2,20,1,1);
 	opt_win = newwin(OPTH,OPTW,Y_EDGE-OPTH+1,X_EDGE+3);
 	status_win = newwin(STATH,STATW,1,X_EDGE+3);
 	text_win = newwin(TEXTH,TEXTW,Y_EDGE+3,1);
@@ -43,10 +35,97 @@ void createWindows(void) {
 	wrefresh(opt_border);
 	wrefresh(text_border);
 	wrefresh(main_win);
-	wrefresh(log_win);
 }
 
-void initColors(void) {
+//checks location of mouse click to see if user clicked the appropriate box for diccifulty settings
+static int checkClickLocation(const int x, const int y) {
+	if(x >= (X_EDGE/2)-17 && x <= (X_EDGE/2)-15) {  //if mouse x is within x coordinates for checkbox
+		switch(y) {
+			case (Y_EDGE/2) + 1: 
+				difficulty = 1;
+				return 0;
+			case (Y_EDGE/2) + 2: 
+				difficulty = 2;
+				return 0;
+			case (Y_EDGE/2) + 3: 
+				difficulty = 3;
+				return 0;
+			case (Y_EDGE/2) + 4: 
+				difficulty = 4;
+				return 0;
+			default: return 1;
+		}
+	}
+	else {
+		return 1;
+	}
+}
+
+//gets user input for difficulty of game
+static void getInput(void){
+	int loop_control = 1;  //controls whole loop. 1 = loop, 0 = stop looping
+	MEVENT event;
+	while (loop_control) {
+		switch(getch()) {  //get user input to select diffculty. will keep looping utill correct choice is entered
+			case KEY_MOUSE:
+				switch(getmouse(&event)) { 
+					case OK:
+						if(event.bstate & BUTTON1_CLICKED){ //if left mouse button was clicked
+							wmouse_trafo(start_win, &event.y, &event.x,FALSE);  //converts x and y to window relative points
+							loop_control = checkClickLocation(event.x,event.y);
+						}
+						break;
+					default: //do nothing
+						break;
+				}
+				break;
+			case '1': 
+				difficulty = 1;
+				loop_control = 0;
+				break;
+			case '2': 
+				difficulty = 2;
+				loop_control = 0;
+				break;
+			case '3': 
+				difficulty = 3;
+				loop_control = 0;
+				break;
+			case '4': 
+				difficulty = 4;
+				loop_control = 0;
+				break;
+			default: //do nothing
+				break;
+		}
+	}
+}
+
+
+//makes screen which allows user to select difficulty
+static void makeStartScr(void) {
+	start_win = newwin(Y_EDGE,X_EDGE,1,1);
+	start_border = newwin(Y_EDGE+2,X_EDGE+2,0,0);
+	wborder(start_border,'|','|','-', '-', '+', '+', '+', '+');	
+	wrefresh(start_win);
+	wrefresh(start_border);
+	mvwprintw(start_win,Y_EDGE/2,(X_EDGE/2)-23,"please choose difficulty (click box or type number):");
+	mvwprintw(start_win,(Y_EDGE/2) + 1,(X_EDGE/2)-17,"[ ](1) easy");
+	mvwprintw(start_win,(Y_EDGE/2) + 2,(X_EDGE/2)-17,"[ ](2) normal");
+	mvwprintw(start_win,(Y_EDGE/2) + 3,(X_EDGE/2)-17,"[ ](3) difficult");
+	mvwprintw(start_win,(Y_EDGE/2) + 4,(X_EDGE/2)-17,"[ ](4) very difficult");
+	wrefresh(start_win);
+	wrefresh(start_border);
+}	
+
+static void clearStartScr(void) {
+	wclear(start_win);
+	wclear(start_border);
+	wrefresh(start_win);
+	wrefresh(start_border);
+}
+
+static void initColors(void) {
 	start_color();
 	init_pair(RED_COLOR,COLOR_RED,COLOR_BLACK);
 	init_pair(GREEN_COLOR,COLOR_GREEN,COLOR_BLACK);
@@ -55,8 +134,7 @@ void initColors(void) {
 }
 
 //initialize ncurses
-void initScreen(void) {
-	start_color();
+static void initScreen(void) { 
 	initscr();        //start ncurses
 	noecho();	      //dont display key strokes
 	cbreak();	     //disable line buffering
@@ -69,5 +147,8 @@ void initScreen(void) {
 void makeWin(void) {
 	initScreen();
 	initColors();
+	makeStartScr();
+	getInput();
+	clearStartScr();
 	createWindows();
 }

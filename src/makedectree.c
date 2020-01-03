@@ -1,67 +1,71 @@
 //---------------------------------------- headers ------------------------------------------------
-#include "units.h"
-#include "macros.h"
-#include "dectreefuncs.h"
 #include "makedectree.h"
-#include <stdlib.h>
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
-typedef void (*func_pointer)(void *ship, void *dec);
 static const int SIZE_DECTREE = sizeof(dectree);
-
-//---------------------------------------- prototypes ----------------------------------------------
-void makeCargoDecTree(SHIP *const ship);
-void makeSubDecTree(SHIP *const ship);
-void makeSurDecTree(SHIP *const ship);
-dectree *makeTree(const int *const num_ars,const func_pointer *const functions,dectree *dec);
-dectree *addToTree(dectree *dec,const int num, const int y, const int *const ar, const func_pointer func);
-
 
 //---------------------------------------- code ---------------------------------------------------
 
 
-dectree *addToTree(dectree *dec,const int num, const int y, const int *const ar, const func_pointer func) {
+static dectree *addToTree(dectree *dec,const int num, const func_pointer func) {
 	if(dec == NULL) {
 		dec = malloc(SIZE_DECTREE);
 		dec->decFunc = func;
 		dec->leftdec = dec->rightdec = NULL;
+		dec->num = num;
 	}
-	else if(num <= ar[y] ){
-		dec->leftdec = addToTree(dec->leftdec,num,y + 1,ar,func);
+	else if(num <= dec->num ){
+		dec->leftdec = addToTree(dec->leftdec,num,func);
 	}
-	else if(num > ar[y]) {
-		dec->rightdec = addToTree(dec->rightdec,num,y + 1,ar,func);
+	else if(num > dec->num) {
+		dec->rightdec = addToTree(dec->rightdec,num,func);
 	}
 	return dec;
 }
 
-dectree *makeTree(const int *const num_ars,const func_pointer *const functions,dectree *dec) {
-	const int limit = sizeof(num_ars) * sizeof(int);
+ static dectree *makeTree(const int *const num_ars,const func_pointer *const functions,dectree *dec,const int limit) {
 	for(int i = 0; i < limit; i++) {
-		dec = addToTree(dec,num_ars[i],0,num_ars,functions[i]);
+		dec = addToTree(dec,num_ars[i],functions[i]);
 	}
 	return dec;
 }
 
-void makeSurDecTree(SHIP *const ship) {
-	const int ship_nums[] = { 3,2,1 };
-	const func_pointer surShip_decar[] = { startFunc,secondFunc,moveCompShip };
+static void makeSurDecTree(SHIP *const ship) {
+	const int num_ars[] = { 100,40,20,10,2,1,3,11,30,25,24,26,35,45,44,50,120 };
+	const func_pointer surship_decar[] = { 
+
+		isLocKnown,timeSinceKnown,isInRange,haveShotAt,chooseRandOne,moveCompShip,
+		surShipShootAt,surShipShootAt,distTowards,chooseRandTwo,moveTowards,moveCompShip,
+		moveCompShip,chooseRandThree,moveTowards,moveCompShip,moveCompShip
+	};	
 	ship->dtree = NULL;
-	ship->dtree = makeTree(ship_nums,surShip_decar,ship->dtree);
+	ship->dtree = makeTree(num_ars,surship_decar,ship->dtree,sizeof(num_ars)/sizeof(int));
 }
 
-void makeSubDecTree(SHIP *const ship) {
-	const int sub_nums[] = { 3,2,1 };
-	const func_pointer subShip_decar[] = { startFunc,secondFunc,moveCompShip };
+static void makeSubDecTree(SHIP *const ship) {
+	const int num_ars[] = 
+		{ 
+			150,130,120,110,100,95,94,96,101,
+			118,114,112,111,113,116,115,117,119,
+			122,121,123,134,132,131,133,136,135,
+			137,174,171,176,175,177
+		};
+	const func_pointer subship_decar[] = 
+		{ 
+			isLocKnown,timeSinceKnown,isInTorRange,isInRegTorRange,haveShotAt,chooseRand,moveCompShip,shootTor,shootTor,
+			haveAOE,haveShotAt,chooseRand,shootAOE,moveCompShip,chooseRand,moveCompShip,useSonar,moveCompShip,
+			chooseRand,moveCompShip,useSonar,timeSinceSonar,chooseRand,moveCompShip,useSonar,chooseRand,useSonar,
+			moveCompShip,timeSinceSonar,moveCompShip,chooseRand,useSonar,moveCompShip
+		};
 	ship->dtree = NULL;
-	ship->dtree = makeTree(sub_nums,subShip_decar,ship->dtree);
+	ship->dtree = makeTree(num_ars,subship_decar,ship->dtree,sizeof(num_ars)/sizeof(int));
 }
 
-void makeCargoDecTree(SHIP *const ship) {
-	const int cargo_nums[] = { 3,2,1 };
-	const func_pointer cargoShip_decar[] = { startFunc,secondFunc,moveCompShip };
+static void makeCargoDecTree(SHIP *const ship) {
+	const int num_ars[] = { 10,9,7,10,11 };
+	const func_pointer cargoship_decar[] = { isLocKnown,timeSinceKnown,moveAway,moveCompShip,moveCompShip };
 	ship->dtree = NULL;
-	ship->dtree = makeTree(cargo_nums,cargoShip_decar,ship->dtree);
+	ship->dtree = makeTree(num_ars,cargoship_decar,ship->dtree,sizeof(num_ars)/sizeof(int));
 }
 
 void makeDecTrees(void) {
@@ -70,9 +74,9 @@ void makeDecTrees(void) {
 		switch(head->ship->type) {
 			case SUBMARINE: makeSubDecTree(head->ship);
 				break;
-			case SURFACESHIP:makeSurDecTree(head->ship);
+			case SURFACESHIP: makeSurDecTree(head->ship);
 				break;
-			case CARGOSHIP:makeCargoDecTree(head->ship);
+			case CARGOSHIP: makeCargoDecTree(head->ship);
 				break;
 			default: //do nothing. should never get here
 				break;
