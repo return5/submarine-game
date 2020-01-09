@@ -22,7 +22,7 @@ find  "${PWD}/src" -type f > "${PWD}/src_files"
 if  ! (gcc -v >/dev/null 2>&1) || [ "$1" == "-c" ]; then
 	echo "using clang instead of gcc"
 	if (clang -v >/dev/null 2>&1); then
-		clang @src_files @flags   #'src_files' is list of all .c files to include. 'flags' is a file which list all compiler flags to use
+		clang @src_files -Iheaders -O2 -lncurses -std=gnu11   #'src_files' is list of all .c files to include. 'flags' is a file which list all compiler flags to use
 	else
 		echo "sorry, clang doesnt seem to be installed"
 		exit
@@ -30,9 +30,10 @@ if  ! (gcc -v >/dev/null 2>&1) || [ "$1" == "-c" ]; then
 else 	
 	if (gcc -v >/dev/null 2>&1); then
 		echo "using gcc"
-		gcc @src_files @flags 
+		gcc @src_files -Iheaders -O2 -lncurses -std=gnu11
 	else
 		echo "sorry, gcc doesnt seem to be installed"
 		exit
 	fi	
 fi
+rm src_files
