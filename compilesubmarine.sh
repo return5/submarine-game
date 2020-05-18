@@ -37,7 +37,7 @@ main() {
             ;;
         *)
             #checks to see if gcc is installed, and if so call useGCC, otherwise print error
-            (gcc -v >/dev/null 2>&1 && useGCC) || printf "%S\n" "error, make sure GCC is installed."
+            (gcc -v >/dev/null 2>&1 && useGCC) || printf "%s\n" "error, make sure GCC is installed."
             ;;
     esac
 }
