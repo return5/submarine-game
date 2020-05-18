@@ -17,13 +17,13 @@ printHelp() {
 #use GCC to compile the game
 useGCC() {
     printf "%s\n" "using GCC"
-    gcc @src_files -Wall -Wextra -O2 -Iheaders -finline-functions -Wswitch-enum -lncurses -std=gnu11 -osubmarine_game
+    gcc @src_files -Wall -Wextra -O2 -Iheaders -lm -finline-functions -Wswitch-enum -lncurses -std=gnu11 -osubmarine_game
 }
 
 #compiles game using Clang
 useClang() {
     printf "%s\n" "using Clang"
-    clang @src_files -Iheaders -Wall -Wextra -O2 -lncurses -finline-functions -Wswitch-enum -std=gnu11 -osubmarine_game   
+    clang @src_files -Iheaders -Wall -Wextra -O2 -lm -lncurses -finline-functions -Wswitch-enum -std=gnu11 -osubmarine_game   
 }
 
 main() {
@@ -37,7 +37,7 @@ main() {
             ;;
         *)
             #checks to see if gcc is installed, and if so call useGCC, otherwise print error
-            (gcc -v >/dev/null 2>&1 && useGCC) || printf "%s\n" "error, make sure GCC is installed."
+            (gcc -v >/dev/null 2>&1 && useGCC) || printf "%S\n" "error, make sure GCC is installed."
             ;;
     esac
 }
