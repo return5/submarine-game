@@ -1,5 +1,13 @@
 //---------------------------------------- headers ------------------------------------------------
 #include "playerturn.h"
+#include "units.h"
+#include "macros.h"
+
+//---------------------------------------- prototypes ----------------------------------------------
+static int getUserInput(void);
+static void movePlayer(void);
+static void checkIfWin(void);
+
 //---------------------------------------- code ---------------------------------------------------
 
 //gets user input to move player_sub one space in any direction.

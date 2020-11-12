@@ -1,10 +1,11 @@
 //---------------------------------------- headers ------------------------------------------------
+#include <stdlib.h>
 #include "computerturn.h"
+#include"macros.h"
 
 //---------------------------------------- macros -------------------------------------------------
 
 #define UNUSED __attribute__((unused))  //disable warnings about unused vars
-
 //---------------------------------------- code ---------------------------------------------------
 
 //random num in the range of start - (end -1)

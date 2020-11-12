@@ -1,15 +1,23 @@
 //---------------------------------------- headers ------------------------------------------------
+#include <stdlib.h>
 #include "makedectree.h"
+#include "units.h"
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
-static const int SIZE_DECTREE = sizeof(dectree);
+typedef int (*func_pointer)(SHIP *const ship, void *dec);
+
+//---------------------------------------- prototypes ----------------------------------------------
+static void makeCargoDecTree(SHIP *const ship);
+static void makeSubDecTree(SHIP *const ship);
+static void makeSurDecTree(SHIP *const ship);
+static dectree *makeTree(const int *const num_ars,const func_pointer *const functions,dectree *dec,const int limit);
+static dectree *addToTree(dectree *dec,const int num,const func_pointer func);
 
 //---------------------------------------- code ---------------------------------------------------
 
-
 static dectree *addToTree(dectree *dec,const int num, const func_pointer func) {
 	if(dec == NULL) {
-		dec = malloc(SIZE_DECTREE);
+		dec = malloc(sizeof(dectree));
 		dec->decFunc = func;
 		dec->leftdec = dec->rightdec = NULL;
 		dec->num = num;

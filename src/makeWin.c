@@ -1,6 +1,14 @@
 //---------------------------------------- headers ------------------------------------------------
 #include "makeWin.h"
-
+#include "macros.h"
+//---------------------------------------- prototypes ----------------------------------------------
+static void createWindows(void);
+static void initScreen(void);
+static void initColors(void);
+static int checkClickLocation(const int x, const int y);
+static void getInput(void);
+static void makeStartScr(void);
+static void clearStartScr(void);
 
 //----------------------------------------  global vars -------------------------------------------
 

@@ -1,6 +1,37 @@
 //---------------------------------------- headers ------------------------------------------------
+#include "macros.h"
+#include <ncurses.h>
+#include <stdlib.h>
+#include <math.h>
 #include "weapons.h"
-
+#include "main.c"
+//---------------------------------------- prototypes ----------------------------------------------
+static void getSingleTargetX(SHIP **targets, const int index,const int abs,const int limit);
+static void getSingleTargetY(SHIP **targets, const int index,const int abs,const int limit);
+static void checkIfTargetHitX(SHIP *const target, const int start, const int end);
+static void checkIfTargetHitY(SHIP *const target, const int start, const int end);
+static void checkAOE(SHIP *const target,const int x, const int y,const int z);
+static void damageTarget(SHIP *const target, const int damage);
+static void checkBlastRadius(const int x,const int y,const int z);
+static void torpedoFireLineRight(int const limit);
+static void torpedoFireLineLeft(int const limit);
+static void torpedoFireLineDown(int const limit);
+static void confirmFireTorpedo(const int limit);
+static void fireTorpedoForward(const int limit);
+static void targetDestroyed(SHIP *const target);
+static void torpedoFireLineUp(int const limit);
+static void damagePlayerSub(const int damage);
+static void fireTorpedoRight(const int limit);
+static void fireTorpedoBack(const int limit);
+static void fireTorpedoLeft(const int limit);
+static void damagedShip(SHIP *const ship);
+static int checkZ(const SHIP *const ship);
+static void fireTorpedo(const int limit);
+static void decreaseAOEDIst(int limit);
+static void increaseAOEDist(int limit);
+static void useAOETor(const int limit);
+static void checkForEnemySubs(void);
+static int getLimit(void);
 //---------------------------------------- code ---------------------------------------------------
 
 //when player's current location becomes known, reset the shot_at var in all comp players. 

@@ -1,6 +1,12 @@
 //---------------------------------------- headers ------------------------------------------------
+#include <time.h>
+#include <ncurses.h>
 #include "printStuff.h"
+#include "makeWin.h"
+#include "macros.h"
 
+//---------------------------------------- prototypes ----------------------------------------------
+static void printNumSign(const int i,const int j, const int x, const int y, const int color);
 //---------------------------------------- code ---------------------------------------------------
 
 void animateTorpedo(const int limit) {

@@ -7,12 +7,20 @@
 
 
 //---------------------------------------- headers ------------------------------------------------
+#include <stdlib.h>
+#include <ncurses.h>
 #include "main.h"
+#include "macros.h"
+#include "units.h"
 
 //----------------------------------------  global vars -------------------------------------------
 SHIP *player_sub; //player controlled submarine
 ENEMIES *enemies; //head of linked list which holds enemy ships
 int play = 1;
+//
+//---------------------------------------- prototypes ----------------------------------------------
+static void gameLoop(void);
+static void exitGame(void);
 
 //---------------------------------------- code ---------------------------------------------------
 

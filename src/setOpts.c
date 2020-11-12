@@ -1,5 +1,11 @@
 //---------------------------------------- headers ------------------------------------------------
+#include <stddef.h>
+#include "units.h"
+#include "macros.h"
 #include "setOpts.h"
+
+//---------------------------------------- prototypes ----------------------------------------------
+static void useSonar(void);
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -56,7 +62,7 @@ void useAOE(void) {
 	else if(PLAYER->num_aoetor) {
 		PLAYER->using_aoe = 1;
 		printToOptWin(2,1,"x",RED_COLOR);  //printStuff.c
-		setTorpedoFireLine();  //printStuff.c
+		setTorpedoFireLine();  
 	}
 	else {
 		printToTxtScr(0,0,"sorry, but you are out of AOE torpedoes.");  //printStuff.c

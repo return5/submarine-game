@@ -1,8 +1,22 @@
 
 //---------------------------------------- headers -------------------------------------------------
+#include <stdlib.h>
+#include <time.h>
+#include <stdio.h>
 #include "createPieces.h"
+#include "units.h"
+#include "macros.h"
 //----------------------------------------  global vars -------------------------------------------
 int num_enemies = 0;
+
+//---------------------------------------- prototypes ----------------------------------------------
+static int getRandom(const int start, const int end);
+static void makeBoat(SHIP *const ship);
+static void makeSub(SHIP *const ship);
+static void makeShip(SHIP *const ship,const int x_start, const int y_start, const int x_end, const int y_end,enum TYPE type);
+static void setFacingDirection(SHIP *const ship);
+static ENEMIES *makeNewNode(const int type);
+static ENEMIES *addEnemy(ENEMIES *enemy_list,const int type);
 
 //---------------------------------------- code ---------------------------------------------------
 
