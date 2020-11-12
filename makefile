@@ -1,5 +1,5 @@
 CFLAGS = -std=gnu99 -Wall -Wextra -O2 
-LIBFLAGS = -lncurses -I
+LIBFLAGS = -lncurses -lm  -I
 CC = gcc
 SRC = ./src/
 HEADERS = headers
