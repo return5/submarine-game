@@ -1,3 +1,7 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef PLAYERTURN_M
+#define PLAYERTURN_M
+
 #include "units.h"
 #include "macros.h"
 #include <ncurses.h>
@@ -22,3 +26,6 @@ void checkMouseLocation(const int x, const int y);  //setOpts.c
 //---------------------------------------- global vars ----------------------------------------------
 
 extern int play;
+
+#endif
+

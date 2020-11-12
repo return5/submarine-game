@@ -1,3 +1,6 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef PRINTSTUFF_M
+#define PRINTSTUFF_M
 //---------------------------------------- headers ------------------------------------------------
 #include "units.h"
 #include "macros.h"
@@ -29,3 +32,6 @@ void checkIfDetected(const SHIP *const sub);
 
 //--------------------------------------- global vars -----------------------------------------------
 extern WINDOW *main_win,*opt_win,*status_win,*text_win;
+
+#endif
+

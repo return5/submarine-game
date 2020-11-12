@@ -1,3 +1,7 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef MOVEMENT_M
+#define MOVEMENT_M
+
 #include "units.h"
 #include "macros.h"
 #include <stdlib.h>
@@ -19,4 +23,6 @@ int getDistance(const SHIP *const ship1,const SHIP *const ship2);
 int moveAway(SHIP *const ship, void *dec);
 int moveAwayX(SHIP *const ship);
 int moveAwayY(SHIP *const ship);
+
+#endif
 

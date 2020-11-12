@@ -9,7 +9,6 @@
 //---------------------------------------- headers ------------------------------------------------
 #include "main.h"
 
-
 //----------------------------------------  global vars -------------------------------------------
 SHIP *player_sub; //player controlled submarine
 ENEMIES *enemies; //head of linked list which holds enemy ships

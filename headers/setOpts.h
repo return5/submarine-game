@@ -1,3 +1,7 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef SETOPT_M
+#define SETOPTS_M
+
 #include <stddef.h>
 #include "units.h"
 #include "macros.h"
@@ -22,4 +26,6 @@ void printToOptWin(const int x, const int y, const char *const str, const int co
 void printToTxtScr(const int x, const int y, const char *const str); //printStuff.c
 void displaySonar(SHIP *const sub); //printStuff.c
 void printLastDetected(SHIP *const ship); //printStuff.c
+
+#endif
 

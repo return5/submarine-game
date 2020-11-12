@@ -1,3 +1,8 @@
+//----------------------------------------- include guards ---------------------------------------
+#ifndef COMP_TURN_H
+
+#define COMP_TURN_H
+
 #include "units.h"
 #include"macros.h"
 #include <stdlib.h>
@@ -52,3 +57,5 @@ void checkIfDetected(const SHIP *const sub);  //weapons.c
 
 //---------------------------------------- global vars ----------------------------------------------
 extern int play;
+#endif
+

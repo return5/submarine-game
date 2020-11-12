@@ -1,3 +1,7 @@
+//----------------------------------------- include guards ---------------------------------------
+#ifndef CREATE_PIECES_M
+#define CREATE_PIECES_M
+
 #include "units.h"
 #include "macros.h"
 #include <stdlib.h>
@@ -20,3 +24,5 @@ static ENEMIES *makeNewNode(const int type);
 static ENEMIES *addEnemy(ENEMIES *enemy_list,const int type);
 //--------------------------------------- global vars -----------------------------------------------
 extern int difficulty;
+#endif
+

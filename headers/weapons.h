@@ -1,3 +1,6 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef WEAPONS_M
+#define WEAPONS_M
 //---------------------------------------- headers ------------------------------------------------
 
 #include "units.h"
@@ -64,3 +67,6 @@ void checkMouseLocation(const int x, const int y); 							    //setOpts.c
 //---------------------------------------- global vars ----------------------------------------------
 
 extern int play;
+
+#endif
+

@@ -1,3 +1,7 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef UNITS_M
+#define UNITS_M
+
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 
 enum TYPE {SUBMARINE,SURFACESHIP,CARGOSHIP};
@@ -45,3 +49,6 @@ typedef struct ENEMIES { //used to make linked list to hold enemy ships
 extern SHIP *player_sub; //player controlled submarine
 extern ENEMIES *enemies; //head of linked list which holds enemy ships
 extern int num_enemies;
+
+#endif
+

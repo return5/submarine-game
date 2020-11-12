@@ -1,6 +1,9 @@
+//---------------------------------------- include guard ------------------------------------------
+#ifndef MAKEDEC_M
+#define MAKEDEC_M
+
 #include "units.h"
 #include <stdlib.h>
-
 //---------------------------------------- typedefs,enums,consts ----------------------------------
 typedef int (*func_pointer)(SHIP *const ship, void *dec);
 
@@ -37,3 +40,6 @@ int useSonar(SHIP *const ship, void *dec);  //computerturn.c
 int timeSinceSonar(SHIP *const ship, void *dec);  //computerturn.c
 int shootAOE(SHIP *const ship, void *dec);  //weapons.c
 int shootTor(SHIP *const ship, void *dec);  //weapons.c
+
+#endif
+
