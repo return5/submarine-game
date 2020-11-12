@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include "computerturn.h"
 #include"macros.h"
+#include "main.h"
+#include "printStuff.h"
+#include "weapons.h"
+#include "movement.h"
 
 //---------------------------------------- macros -------------------------------------------------
 

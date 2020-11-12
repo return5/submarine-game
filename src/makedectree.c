@@ -6,7 +6,7 @@
 #include "movement.h"
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
-typedef int (func_pointer)(SHIP *const ship, void *dec);
+typedef int (*func_pointer)(SHIP *const ship, void *dec);
 
 //---------------------------------------- prototypes ----------------------------------------------
 static void makeCargoDecTree(SHIP *const ship);
@@ -42,7 +42,7 @@ static dectree *addToTree(dectree *dec,const int num, const func_pointer func) {
 
 static void makeSurDecTree(SHIP *const ship) {
 	const int num_ars[] = { 100,40,20,10,2,1,3,11,30,25,24,26,35,45,44,50,120 };
-	func_pointer surship_decar[] = { 
+	const func_pointer surship_decar[] = { 
 
 		isLocKnown,timeSinceKnown,isInRange,haveShotAt,chooseRandOne,moveCompShip,
 		surShipShootAt,surShipShootAt,distTowards,chooseRandTwo,moveTowards,moveCompShip,

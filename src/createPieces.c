@@ -6,6 +6,8 @@
 #include "createPieces.h"
 #include "units.h"
 #include "macros.h"
+#include "makeWin.h"
+
 //----------------------------------------  global vars -------------------------------------------
 int num_enemies = 0;
 
@@ -120,7 +122,7 @@ void createPieces(void) {
 	makeShip(player_sub,0,0,(X_EDGE/2)-5,(Y_EDGE/2)-5,SUBMARINE);
 	enemies = addEnemy(enemies,SURFACESHIP);
 	enemies = addEnemy(enemies,CARGOSHIP);
-	switch(difficulty) {
+	switch(DIFFICULTY) {
 		case 4: enemies = addEnemy(enemies,SUBMARINE);  //very hard = 2 subs, 2 surface shipes
 		//FALLTHRU 
 		case 3: enemies = addEnemy(enemies,SURFACESHIP); //hard = 2 surface ships, 1 sub

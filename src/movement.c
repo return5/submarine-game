@@ -6,12 +6,11 @@
 #include "macros.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
-static int getRandom(const int start, const int end);
 
 //---------------------------------------- code ---------------------------------------------------
 
 //random num in the range of start - (end -1)
-static int getRandom(const int start, const int end) {
+int getRandom(const int start, const int end) {
 	return (rand() % (end - start)) + start;
 }
 

@@ -12,6 +12,12 @@
 #include "main.h"
 #include "macros.h"
 #include "units.h"
+#include "makeWin.h"
+#include "playerturn.h"
+#include "setOpts.h"
+#include "computerturn.h"
+#include "printStuff.h"
+#include "createPieces.h"
 
 //----------------------------------------  global vars -------------------------------------------
 SHIP *player_sub; //player controlled submarine

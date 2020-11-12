@@ -13,7 +13,7 @@ static void clearStartScr(void);
 //----------------------------------------  global vars -------------------------------------------
 
 WINDOW *main_win,*opt_win,*status_win,*text_win,*start_win,*start_border;
-int difficulty = 2;
+int DIFFICULTY = 2;
 
 //---------------------------------------- code ---------------------------------------------------
 
@@ -50,16 +50,16 @@ static int checkClickLocation(const int x, const int y) {
 	if(x >= (X_EDGE/2)-17 && x <= (X_EDGE/2)-15) {  //if mouse x is within x coordinates for checkbox
 		switch(y) {
 			case (Y_EDGE/2) + 1: 
-				difficulty = 1;
+				DIFFICULTY = 1;
 				return 0;
 			case (Y_EDGE/2) + 2: 
-				difficulty = 2;
+				DIFFICULTY = 2;
 				return 0;
 			case (Y_EDGE/2) + 3: 
-				difficulty = 3;
+				DIFFICULTY = 3;
 				return 0;
 			case (Y_EDGE/2) + 4: 
-				difficulty = 4;
+				DIFFICULTY = 4;
 				return 0;
 			default: return 1;
 		}
@@ -69,7 +69,7 @@ static int checkClickLocation(const int x, const int y) {
 	}
 }
 
-//gets user input for difficulty of game
+//gets user input for DIFFICULTY of game
 static void getInput(void){
 	int loop_control = 1;  //controls whole loop. 1 = loop, 0 = stop looping
 	MEVENT event;
@@ -88,19 +88,19 @@ static void getInput(void){
 				}
 				break;
 			case '1': 
-				difficulty = 1;
+				DIFFICULTY = 1;
 				loop_control = 0;
 				break;
 			case '2': 
-				difficulty = 2;
+				DIFFICULTY = 2;
 				loop_control = 0;
 				break;
 			case '3': 
-				difficulty = 3;
+				DIFFICULTY = 3;
 				loop_control = 0;
 				break;
 			case '4': 
-				difficulty = 4;
+				DIFFICULTY = 4;
 				loop_control = 0;
 				break;
 			default: //do nothing
@@ -110,14 +110,14 @@ static void getInput(void){
 }
 
 
-//makes screen which allows user to select difficulty
+//makes screen which allows user to select DIFFICULTY
 static void makeStartScr(void) {
 	start_win = newwin(Y_EDGE,X_EDGE,1,1);
 	start_border = newwin(Y_EDGE+2,X_EDGE+2,0,0);
 	wborder(start_border,'|','|','-', '-', '+', '+', '+', '+');	
 	wrefresh(start_win);
 	wrefresh(start_border);
-	mvwprintw(start_win,Y_EDGE/2,(X_EDGE/2)-23,"please choose difficulty (click box or type number):");
+	mvwprintw(start_win,Y_EDGE/2,(X_EDGE/2)-23,"please choose DIFFICULTY (click box or type number):");
 	mvwprintw(start_win,(Y_EDGE/2) + 1,(X_EDGE/2)-17,"[ ](1) easy");
 	mvwprintw(start_win,(Y_EDGE/2) + 2,(X_EDGE/2)-17,"[ ](2) normal");
 	mvwprintw(start_win,(Y_EDGE/2) + 3,(X_EDGE/2)-17,"[ ](3) difficult");
