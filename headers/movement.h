@@ -19,6 +19,7 @@ int getDistance(const SHIP *const ship1,const SHIP *const ship2);
 int moveAway(SHIP *const ship, void *dec);
 int moveAwayX(SHIP *const ship);
 int moveAwayY(SHIP *const ship);
+int moveTowardsX(SHIP *const ship); 
 
 #endif
 

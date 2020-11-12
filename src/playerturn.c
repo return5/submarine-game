@@ -1,7 +1,13 @@
 //---------------------------------------- headers ------------------------------------------------
+#include <ncurses.h>
 #include "playerturn.h"
 #include "units.h"
 #include "macros.h"
+#include "movement.h"
+#include "printStuff.h"
+#include "main.h"
+#include "setOpts.h"
+#include "weapons.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 static int getUserInput(void);

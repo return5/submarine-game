@@ -9,7 +9,6 @@
  
 void loopDecTree(SHIP *const ship);
 void computerTurn(void);
-static int getRandom(const int start, const int end);
 void loopDecTree(SHIP *const ship);
 int chooseRandTwo(SHIP *const ship, void *dec);
 int timeSinceKnown(SHIP *const ship, void *dec);

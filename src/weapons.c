@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include "weapons.h"
-#include "main.c"
+#include "main.h"
+#include "printStuff.h"
+#include "setOpts.h"
+
 //---------------------------------------- prototypes ----------------------------------------------
 static void getSingleTargetX(SHIP **targets, const int index,const int abs,const int limit);
 static void getSingleTargetY(SHIP **targets, const int index,const int abs,const int limit);

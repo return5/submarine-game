@@ -1,8 +1,11 @@
 //---------------------------------------- headers ------------------------------------------------
 #include <stddef.h>
+#include <ncurses.h>
 #include "units.h"
 #include "macros.h"
 #include "setOpts.h"
+#include "weapons.h"
+#include "printStuff.h"
 
 //---------------------------------------- prototypes ----------------------------------------------
 static void useSonar(void);

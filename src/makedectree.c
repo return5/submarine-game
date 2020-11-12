@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include "makedectree.h"
 #include "units.h"
+#include "computerturn.h"
+#include "movement.h"
 
 //---------------------------------------- typedefs,enums,consts ----------------------------------
-typedef int (*func_pointer)(SHIP *const ship, void *dec);
+typedef int (func_pointer)(SHIP *const ship, void *dec);
 
 //---------------------------------------- prototypes ----------------------------------------------
 static void makeCargoDecTree(SHIP *const ship);
@@ -40,7 +42,7 @@ static dectree *addToTree(dectree *dec,const int num, const func_pointer func) {
 
 static void makeSurDecTree(SHIP *const ship) {
 	const int num_ars[] = { 100,40,20,10,2,1,3,11,30,25,24,26,35,45,44,50,120 };
-	const func_pointer surship_decar[] = { 
+	func_pointer surship_decar[] = { 
 
 		isLocKnown,timeSinceKnown,isInRange,haveShotAt,chooseRandOne,moveCompShip,
 		surShipShootAt,surShipShootAt,distTowards,chooseRandTwo,moveTowards,moveCompShip,
@@ -58,7 +60,7 @@ static void makeSubDecTree(SHIP *const ship) {
 			122,121,123,134,132,131,133,136,135,
 			137,174,171,176,175,177
 		};
-	const func_pointer subship_decar[] = 
+	func_pointer subship_decar[] = 
 		{ 
 			isLocKnown,timeSinceKnown,isInTorRange,isInRegTorRange,haveShotAt,chooseRand,moveCompShip,shootTor,shootTor,
 			haveAOE,haveShotAt,chooseRand,shootAOE,moveCompShip,chooseRand,moveCompShip,useSonar,moveCompShip,
@@ -71,7 +73,7 @@ static void makeSubDecTree(SHIP *const ship) {
 
 static void makeCargoDecTree(SHIP *const ship) {
 	const int num_ars[] = { 10,9,7,10,11 };
-	const func_pointer cargoship_decar[] = { isLocKnown,timeSinceKnown,moveAway,moveCompShip,moveCompShip };
+	func_pointer cargoship_decar[] = { isLocKnown,timeSinceKnown,moveAway,moveCompShip,moveCompShip };
 	ship->dtree = NULL;
 	ship->dtree = makeTree(num_ars,cargoship_decar,ship->dtree,sizeof(num_ars)/sizeof(int));
 }
