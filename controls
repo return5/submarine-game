@@ -1,0 +1,22 @@
+movement
+ - 'w''a''s''d' to move forward,left,right,back
+ - 'q' and 'e' to go up in depth and to go down in depth respectively. 
+ weapons
+  - 'g' arms a torpedo and shows red line representing aimin of torpedo
+      - ship must be within +/- 1 or fewer z levels to hit
+      - can click 'AOE TOR' in otpion window to select an area of effect torpedo
+         - use 'q' and 'e' to adjust point of impact forward or backwards.
+      - press 'g' a second time to fire your weapon
+      - press any other key to cancel
+      
+ options
+   - turbo
+      -use once per game to gain a one time boost of 2 additional ap
+   - repair
+       - spend your turn to repair 25 points of health to your sub
+   - AOE TOR
+        - select an area of effect torpedo to fire if you have one
+   - sonar
+        - use your sonar
+        
+  press 'j' to quit the game during your turn.
