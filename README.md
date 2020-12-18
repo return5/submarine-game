@@ -38,13 +38,13 @@
       - same as difficult with the addition of a second enemy submarine.
      
   ## screenshots
-  ###uselecting diffrent difficulties
+  ### selecting diffrent difficulties
   ![screenshot1](/screenshots/diff_select.png)
-  ###using an area of effect torpedo
+  ### using an area of effect torpedo
   ![screenshot2](/screenshots/aoetor.png)
-  ###using sonar
+  ### using sonar
   ![screenshot3](/screenshots/sonar.png)
-  ###destroyed an enemy submarine
+  ### destroyed an enemy submarine
   ![screenshot4](/screenshots/destroyenemysub.png)
    
 ## to do
